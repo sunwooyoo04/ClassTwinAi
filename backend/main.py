@@ -2,10 +2,8 @@ from dotenv import load_dotenv
 load_dotenv()  # 반드시 다른 import보다 먼저 실행
 
 import asyncio
-import os
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Optional
 import uvicorn
@@ -971,6 +969,14 @@ async def download_template():
         )
     raise HTTPException(status_code=404, detail="템플릿 파일이 없습니다")
 
-frontend_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend")
-if os.path.isdir(frontend_dir):
-    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+# ==================== 정적 파일 서빙 (프론트엔드) ====================
+# 이 블록은 반드시 모든 API 라우트 아래에 있어야 합니다
+from fastapi.staticfiles import StaticFiles
+import os
+
+FRONTEND_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "frontend"
+)
+if os.path.exists(FRONTEND_DIR):
+    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
