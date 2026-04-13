@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class Twin AI</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f0;color:#1a1a18;min-height:100vh}
+.app{max-width:1000px;margin:0 auto;padding:16px}
+.topbar{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.logo{font-size:16px;font-weight:600;cursor:pointer}.logo span{color:#185FA5}
+.steps-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sp{font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid #e8e6e0;color:#888;background:#fff;cursor:pointer;transition:all .2s}
+.sp.active{background:#E6F1FB;color:#185FA5;border-color:#B5D4F4;font-weight:500}
+.sp.done{background:#EAF3DE;color:#3B6D11;border-color:#C0DD97}
+.screen{display:none}.screen.active{display:block}
+.page-header{margin-bottom:20px}
+.back-btn{font-size:12px;color:#888;cursor:pointer;margin-bottom:12px;display:inline-flex;align-items:center;gap:4px;padding:4px 0}
+.back-btn:hover{color:#333}
+.page-title{font-size:22px;font-weight:600;color:#1a1a18;margin-bottom:4px}
+.page-sub{font-size:13px;color:#888}
+.card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:18px;margin-bottom:14px}
+.card-title{font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:4px}
+.card-sub{font-size:12px;color:#888;margin-bottom:14px;line-height:1.5}
+.tag{display:inline-block;font-size:11px;padding:3px 10px;border-radius:20px;margin-bottom:10px;font-weight:500}
+.tag-red{background:#FCEBEB;color:#A32D2D}
+.tag-blue{background:#E6F1FB;color:#185FA5}
+.tag-green{background:#EAF3DE;color:#3B6D11}
+.tag-warn{background:#FAEEDA;color:#854F0B}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500}
+.bb{background:#E6F1FB;color:#185FA5}
+.bg2{background:#EAF3DE;color:#3B6D11}
+.bw{background:#FAEEDA;color:#854F0B}
+.br{background:#FCEBEB;color:#A32D2D}
+.btn{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid #ddd;background:#fff;color:#333;transition:all .15s}
+.btn:hover{background:#f5f5f0}
+.btn-primary{background:#E6F1FB;color:#185FA5;border-color:#B5D4F4}
+.btn-primary:hover{background:#B5D4F4}
+.btn-success{background:#EAF3DE;color:#3B6D11;border-color:#C0DD97}
+.btn-success:hover{background:#C0DD97}
+.btn-disabled{background:#f5f5f0;color:#bbb;border-color:#e8e6e0;cursor:not-allowed;opacity:0.6}
+.btn-disabled:hover{background:#f5f5f0}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-row{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.notice{border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:12px;line-height:1.5}
+.notice-warn{background:#FAEEDA;color:#854F0B}
+.notice-danger{background:#FCEBEB;color:#A32D2D}
+.notice-success{background:#EAF3DE;color:#3B6D11}
+.notice-info{background:#E6F1FB;color:#185FA5}
+.stat-card{background:#f5f5f0;border-radius:8px;padding:12px;text-align:center}
+.stat-num{font-size:22px;font-weight:600}
+.stat-label{font-size:11px;color:#888;margin-top:3px}
+
+/* ===== 파일 업로드 ===== */
+.drop-zone{border:2px dashed #C0DD97;border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;background:#f9fdf5}
+.drop-zone:hover,.drop-zone.dragover{border-color:#3B6D11;background:#EAF3DE}
+.drop-zone-icon{font-size:28px;margin-bottom:8px}
+.drop-zone-text{font-size:13px;font-weight:500;color:#3B6D11;margin-bottom:4px}
+.drop-zone-sub{font-size:11px;color:#888}
+.upload-btn{display:inline-block;margin-top:10px;padding:7px 16px;background:#EAF3DE;color:#3B6D11;border:1px solid #C0DD97;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer}
+.upload-btn:hover{background:#C0DD97}
+.upload-result{display:none;margin-top:12px;padding:10px 14px;background:#EAF3DE;border-radius:8px;font-size:12px;color:#3B6D11;font-weight:500}
+.upload-result.error{background:#FCEBEB;color:#A32D2D}
+
+/* ===== 홈 ===== */
+.home-welcome{text-align:center;padding:24px 0 20px}
+.home-welcome h2{font-size:22px;font-weight:600;margin-bottom:6px}
+.home-welcome p{font-size:13px;color:#888}
+.main-btns{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.main-btn{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:28px 20px;cursor:pointer;transition:all .2s;text-align:left}
+.main-btn:hover{border-color:#B5D4F4;background:#E6F1FB}
+.main-btn:hover .btn-title{color:#185FA5}
+.btn-icon{width:44px;height:44px;border-radius:8px;background:#f5f5f0;display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-size:20px}
+.btn-title{font-size:16px;font-weight:600;color:#1a1a18;margin-bottom:6px;transition:color .2s}
+.btn-desc{font-size:12px;color:#888;line-height:1.6}
+.btn-chips{margin-top:12px;display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:10px;padding:3px 8px;border-radius:20px;background:#f5f5f0;color:#888}
+.recent-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0ede6;cursor:pointer}
+.recent-row:last-child{border-bottom:none}
+.recent-row:hover{opacity:.8}
+.recent-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;background:#E6F1FB}
+.ri-green{background:#EAF3DE}
+.recent-info{flex:1}
+.recent-name{font-size:13px;color:#1a1a18;font-weight:500}
+.recent-date{font-size:11px;color:#888;margin-top:2px}
+
+/* ===== 학생 데이터 ===== */
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.search-wrap{flex:1;min-width:160px;position:relative}
+.search-wrap input{width:100%;padding:8px 12px 8px 34px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#333;font-size:13px}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#bbb;font-size:14px;pointer-events:none}
+.filter-btn{padding:7px 12px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#888;font-size:12px;cursor:pointer;transition:all .15s}
+.filter-btn.on{background:#E6F1FB;color:#185FA5;border-color:#B5D4F4}
+.table-wrap{background:#fff;border:1px solid #e8e6e0;border-radius:12px;overflow:auto;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:640px}
+thead{background:#f5f5f0}
+th{padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#888;border-bottom:1px solid #e8e6e0;white-space:nowrap}
+td{padding:10px 12px;font-size:12px;color:#1a1a18;border-bottom:1px solid #f0ede6;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf8}
+.avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.av-b{background:#E6F1FB;color:#185FA5}
+.av-g{background:#EAF3DE;color:#3B6D11}
+.av-w{background:#FAEEDA;color:#854F0B}
+.av-r{background:#FCEBEB;color:#A32D2D}
+.av-p{background:#EEEDFE;color:#534AB7}
+.name-cell{display:flex;align-items:center;gap:8px}
+.edit-btn{font-size:11px;color:#bbb;cursor:pointer;padding:3px 8px;border-radius:4px;border:1px solid #e8e6e0;background:none;transition:all .15s}
+.edit-btn:hover{background:#f5f5f0;color:#333}
+.tab-row{display:flex;gap:0;border-bottom:1px solid #e8e6e0;margin-bottom:16px}
+.tab{font-size:13px;padding:9px 16px;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.tab.active{color:#185FA5;border-bottom-color:#185FA5;font-weight:500}
+.tab-content{display:none}.tab-content.active{display:block}
+.level-상{color:#3B6D11;font-weight:600}
+.level-중{color:#854F0B}
+.level-하{color:#A32D2D}
+.relation-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#f5f5f0;border-radius:8px;margin-bottom:6px}
+.rel-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.ri-red{background:#FCEBEB;color:#A32D2D}
+
+/* 모달 */
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:14px;padding:24px;width:380px;max-width:90vw;max-height:85vh;overflow-y:auto}
+.modal-title{font-size:15px;font-weight:600;color:#1a1a18;margin-bottom:18px}
+.form-row{margin-bottom:12px}
+.form-label{font-size:11px;color:#888;margin-bottom:5px;font-weight:500}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:8px 11px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#333;font-size:13px;font-family:inherit}
+.form-row textarea{resize:vertical;min-height:64px;line-height:1.5}
+.modal-btns{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+
+/* 조건 설정 */
+.cond-item{display:flex;align-items:center;gap:8px;padding:9px 12px;background:#f5f5f0;border-radius:8px;margin-bottom:6px}
+.cond-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.ci-red{background:#FCEBEB;color:#A32D2D}
+.ci-green{background:#EAF3DE;color:#3B6D11}
+.ci-warn{background:#FAEEDA;color:#854F0B}
+.ci-blue{background:#E6F1FB;color:#185FA5}
+.cond-text{flex:1;font-size:12px;color:#1a1a18}
+.del-btn{background:none;border:none;color:#ccc;cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;line-height:1}
+.del-btn:hover{color:#A32D2D;background:#FCEBEB}
+.add-row{display:flex;gap:6px;margin-top:10px}
+.add-row select,.add-row input{flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#333;font-size:12px}
+.priority-item{display:flex;align-items:center;gap:10px;padding:11px 14px;background:#f5f5f0;border-radius:8px;margin-bottom:6px;cursor:grab;user-select:none;transition:all .15s}
+.priority-item.dragover{border:2px dashed #185FA5;background:#E6F1FB}
+.priority-item.dragging{opacity:.4}
+.priority-num{width:24px;height:24px;border-radius:50%;background:#E6F1FB;color:#185FA5;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.priority-label{flex:1;font-size:13px;color:#1a1a18}
+.priority-range{display:flex;align-items:center;gap:6px;font-size:11px;color:#888}
+.priority-range input{width:46px;text-align:center;padding:3px 6px;border:1px solid #ddd;border-radius:6px;font-size:12px}
+.drag-handle{color:#ccc;font-size:14px;cursor:grab}
+.chat-wrap{background:#f5f5f0;border-radius:8px;padding:12px;min-height:150px;max-height:220px;overflow-y:auto;margin-bottom:8px}
+.chat-msg{margin-bottom:10px}
+.bubble-ai{background:#fff;border:1px solid #e8e6e0;border-radius:0 10px 10px 10px;padding:9px 13px;font-size:12px;color:#1a1a18;display:inline-block;max-width:88%;line-height:1.6}
+.bubble-user{background:#E6F1FB;border-radius:10px 0 10px 10px;padding:9px 13px;font-size:12px;color:#185FA5;display:inline-block;max-width:88%;line-height:1.6}
+.chat-right{text-align:right}
+.chat-input-row{display:flex;gap:6px}
+.chat-input-row input{flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#333;font-size:12px}
+.quick-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.quick-btn{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid #ddd;background:#fff;color:#888;cursor:pointer;transition:all .15s}
+.quick-btn:hover{background:#E6F1FB;color:#185FA5;border-color:#B5D4F4}
+.conflict-banner{background:#FAEEDA;border-radius:8px;padding:11px 14px;margin-bottom:12px}
+.conflict-title{font-size:12px;font-weight:600;color:#854F0B;margin-bottom:6px}
+.conflict-opts{display:flex;gap:8px}
+.conflict-opt{flex:1;padding:8px 10px;border-radius:8px;border:1px solid #FAC775;background:#fff;cursor:pointer;font-size:11px;color:#1a1a18;text-align:center;transition:all .15s}
+.conflict-opt.selected{background:#FAEEDA;font-weight:600;border-color:#854F0B}
+.summary-box{background:#f5f5f0;border-radius:8px;padding:12px}
+.summary-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid #e8e6e0}
+.summary-row:last-child{border-bottom:none}
+.summary-key{color:#888}
+.summary-val{color:#1a1a18;font-weight:500}
+
+/* 반배정 AI 분석 */
+.plan-tabs{display:flex;gap:10px;margin-bottom:16px}
+.plan-tab{flex:1;padding:14px 12px;border-radius:12px;border:1px solid #e8e6e0;background:#fff;cursor:pointer;text-align:center;position:relative;transition:all .2s}
+.plan-tab.active{border:2px solid #3B6D11}
+.plan-tab:hover{border-color:#C0DD97}
+.plan-tab-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.plan-score{font-size:26px;font-weight:700}
+.score-g{color:#3B6D11}.score-w{color:#854F0B}.score-r{color:#A32D2D}
+.plan-tab-label{font-size:10px;color:#888;margin-bottom:8px}
+.rec-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#EAF3DE;color:#3B6D11;font-size:10px;font-weight:600;padding:2px 12px;border-radius:20px;white-space:nowrap;border:1px solid #C0DD97}
+.bar{height:5px;border-radius:3px;background:#e8e6e0;margin-top:4px}
+.bar-fill{height:100%;border-radius:3px}
+.fill-g{background:#639922}.fill-w{background:#BA7517}.fill-r{background:#E24B4A}
+.plan-detail{display:none}.plan-detail.active{display:block}
+.class-col{background:#f5f5f0;border-radius:8px;padding:12px}
+.class-col-title{font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.schip{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:11px;margin:2px;background:#fff;border:1px solid #e8e6e0;color:#1a1a18}
+.schip.spec{background:#EAF3DE;border-color:#C0DD97;color:#3B6D11}
+.schip.care{background:#FAEEDA;border-color:#FAC775;color:#854F0B}
+.chip-meta{margin-top:8px;font-size:10px;color:#888}
+.reason-row{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid #f0ede6;font-size:12px}
+.reason-row:last-child{border-bottom:none}
+.ri2{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px}
+.ri2-g{background:#EAF3DE;color:#3B6D11}
+.ri2-r{background:#FCEBEB;color:#A32D2D}
+.ri2-b{background:#E6F1FB;color:#185FA5}
+.reason-text{flex:1;line-height:1.6;color:#1a1a18}
+.reason-text small{color:#888;font-size:11px}
+
+/* 반배정 확정 */
+.class-final{background:#f5f5f0;border-radius:10px;padding:14px;margin-bottom:10px}
+.class-final-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.class-final-name{font-size:14px;font-weight:600;color:#1a1a18}
+.schip-selectable{display:inline-flex;align-items:center;gap:3px;padding:4px 10px;border-radius:20px;font-size:11px;margin:2px;background:#fff;border:1px solid #e8e6e0;color:#1a1a18;cursor:pointer;transition:all .15s}
+.schip-selectable:hover{border-color:#185FA5;color:#185FA5}
+.schip-selectable.selected-chip{outline:2px solid #185FA5;outline-offset:2px}
+.schip-selectable.spec{background:#EAF3DE;border-color:#C0DD97;color:#3B6D11}
+.schip-selectable.care{background:#FAEEDA;border-color:#FAC775;color:#854F0B}
+.change-log-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0ede6;font-size:12px}
+.change-log-item:last-child{border-bottom:none}
+.edit-banner{background:#E6F1FB;border-radius:8px;padding:11px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.edit-banner p{font-size:12px;color:#185FA5}
+
+/* 문서 공통 */
+.success-banner{background:#EAF3DE;border-radius:10px;padding:18px;text-align:center;margin-bottom:16px}
+.success-title{font-size:18px;font-weight:700;color:#3B6D11;margin-bottom:4px}
+.success-sub{font-size:12px;color:#3B6D11}
+.doc-tabs{display:flex;gap:0;border-bottom:1px solid #e8e6e0;margin-bottom:14px}
+.doc-tab{font-size:12px;padding:9px 16px;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.doc-tab.active{color:#185FA5;border-bottom-color:#185FA5;font-weight:500}
+.doc-content{display:none}.doc-content.active{display:block}
+.doc-paper{background:#f5f5f0;border-radius:8px;padding:16px;font-size:12px;color:#1a1a18;line-height:1.9;margin-bottom:10px}
+.doc-paper-title{font-size:15px;font-weight:700;text-align:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #e8e6e0}
+.doc-row{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #e8e6e0}
+.doc-row:last-child{border-bottom:none}
+.doc-key{width:130px;color:#888;flex-shrink:0;font-weight:500}
+.doc-val{color:#1a1a18;flex:1}
+.dl-btn{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#1a1a18;font-size:13px;cursor:pointer;transition:all .15s}
+.dl-btn:hover{background:#f5f5f0}
+.dl-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.di-xl{background:#EAF3DE;color:#3B6D11}
+.di-pdf{background:#E6F1FB;color:#185FA5}
+.di-warn{background:#FAEEDA;color:#854F0B}
+
+/* ===== 자리배정 좌석 배치도 ===== */
+.classroom-wrap{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:20px;margin-bottom:14px}
+.blackboard{background:#2d5a3d;color:#fff;text-align:center;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:24px;letter-spacing:1px}
+.teacher-desk{background:#EAF3DE;border:1px solid #C0DD97;color:#3B6D11;text-align:center;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;width:120px;margin:0 auto 24px}
+.seat-area{display:flex;flex-direction:column;gap:10px;align-items:center}
+.seat-row{display:flex;gap:10px;justify-content:center}
+.seat{width:72px;height:64px;border-radius:8px;border:1px solid #e8e6e0;background:#f5f5f0;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative;flex-shrink:0}
+.seat:hover{border-color:#185FA5;background:#E6F1FB}
+.seat.occupied{background:#fff;border-color:#C0DD97;cursor:pointer}
+.seat.occupied:hover{border-color:#185FA5;background:#E6F1FB}
+.seat.selected{outline:3px solid #185FA5;outline-offset:2px;background:#E6F1FB}
+.seat.conflict{background:#FCEBEB;border-color:#F09595}
+.seat.isolated{background:#FAEEDA;border-color:#FAC775}
+.seat.special{background:#fff;border-color:#e8e6e0}
+.seat.vision{background:#E6F1FB;border-color:#85B7EB}
+.seat.has-conflict{border:2px solid #D9534F;box-shadow:0 0 0 1px #FCEBEB inset}
+.seat-icons{position:absolute;top:3px;right:4px;display:flex;gap:2px;font-size:10px}
+.seat-name{font-size:11px;font-weight:600;color:#1a1a18;text-align:center;line-height:1.2}
+.seat-tag{font-size:9px;color:#888;margin-top:2px;text-align:center}
+.seat-num{position:absolute;top:3px;left:5px;font-size:9px;color:#ccc}
+.seat-icon{position:absolute;top:3px;right:4px;font-size:10px}
+.aisle{width:20px;flex-shrink:0}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid #f0ede6}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#888}
+.leg-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.leg-normal{background:#fff;border:1px solid #C0DD97}
+.leg-conflict{background:#FCEBEB;border:1px solid #F09595}
+.leg-isolated{background:#FAEEDA;border:1px solid #FAC775}
+.leg-special{background:transparent;border:none;display:inline-flex;align-items:center;justify-content:center;font-size:13px;width:auto;min-width:14px}
+.leg-vision{background:#E6F1FB;border:1px solid #85B7EB}
+
+/* 툴팁 */
+.tooltip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1a1a18;color:#fff;font-size:11px;padding:6px 10px;border-radius:6px;white-space:nowrap;z-index:100;line-height:1.5;pointer-events:none}
+.tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1a1a18}
+.seat:hover .tooltip{display:block}
+
+/* 자리배정 우측 패널 */
+.side-panel{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:16px;margin-bottom:14px}
+.side-panel-title{font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:12px}
+.alert-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;margin-bottom:6px;font-size:12px;line-height:1.5}
+.alert-warn{background:#FAEEDA;color:#854F0B}
+.alert-info{background:#E6F1FB;color:#185FA5}
+.alert-success{background:#EAF3DE;color:#3B6D11}
+.alert-danger{background:#FCEBEB;color:#A32D2D}
+.alert-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.edit-mode-bar{background:#E6F1FB;border-radius:8px;padding:11px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.edit-mode-bar p{font-size:12px;color:#185FA5;font-weight:500}
+.swap-info{background:#f5f5f0;border-radius:8px;padding:10px 14px;font-size:12px;color:#888;margin-bottom:12px;text-align:center}
+.swap-info span{color:#185FA5;font-weight:600}
+.history-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f0ede6;font-size:12px}
+.history-item:last-child{border-bottom:none}
+.equity-bar-wrap{margin-bottom:10px}
+.equity-label{display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:4px}
+.equity-bar{height:6px;border-radius:3px;background:#e8e6e0;overflow:hidden}
+.equity-fill{height:100%;border-radius:3px;background:#639922;transition:width .5s}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 상단 네비게이션 -->
+  <div class="topbar">
+    <div class="logo" onclick="goHome()">Class<span>Twin</span> AI</div>
+    <div class="steps-row" id="nav-steps"></div>
+  </div>
+
+  <!-- ===== 홈 ===== -->
+  <div class="screen active" id="home">
+    <div class="home-welcome">
+      <h2>안녕하세요, 박수진 선생님</h2>
+      <p>무엇을 시작할까요?</p>
+    </div>
+    <div class="main-btns">
+      <div class="main-btn" onclick="startFlow('ban')">
+        <div class="btn-icon">🏫</div>
+        <div class="btn-title">반배정</div>
+        <div class="btn-desc">학년 전체 학생을 여러 반으로 나눕니다. AI가 갈등·성적·관계를 분석해 최적 배치를 제안합니다.</div>
+        <div class="btn-chips"><span class="chip">연 1회</span><span class="chip">3월 학기 초</span><span class="chip">학년 전체</span></div>
+      </div>
+      <div class="main-btn" onclick="startFlow('seat')">
+        <div class="btn-icon">🪑</div>
+        <div class="btn-title">자리배정</div>
+        <div class="btn-desc">반 안에서 학생 자리를 배치합니다. 시력·키·주의력·갈등 관계를 고려해 자동 배치합니다.</div>
+        <div class="btn-chips"><span class="chip">월 1~2회</span><span class="chip">학기 중 상시</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">최근 작업</div>
+      <div class="recent-row" onclick="startFlow('ban');goScreen('ban5')">
+        <div class="recent-icon">🏫</div>
+        <div class="recent-info"><div class="recent-name">2025년 2학년 반배정</div><div class="recent-date">2025.02.14 · 배치안 A 적용 · 완료</div></div>
+        <span class="badge bb">반배정</span>
+      </div>
+      <div class="recent-row" onclick="startFlow('seat');goScreen('seat5')">
+        <div class="recent-icon ri-green">🪑</div>
+        <div class="recent-info"><div class="recent-name">2반 4월 자리배정</div><div class="recent-date">2025.04.01 · 확정 완료</div></div>
+        <span class="badge bg2">자리배정</span>
+      </div>
+      <div class="recent-row" onclick="startFlow('ban')">
+        <div class="recent-icon">🏫</div>
+        <div class="recent-info"><div class="recent-name">2026년 2학년 반배정</div><div class="recent-date">새 반배정 시작하기</div></div>
+        <span class="badge bg2">시작</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 반배정 플로우 ================= -->
+
+  <!-- 반배정 1단계: 학생 데이터 -->
+  <div class="screen" id="ban1">
+    <div class="page-header">
+      <div class="back-btn" onclick="goHome()">← 홈으로</div>
+      <div class="page-title">반배정 — 학생 데이터</div>
+      <div class="page-sub">2025년 한빛중학교 2학년 · 전체 90명 · <span id="ban-class-count-label">3</span>개 반 예정</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">학생 데이터 불러오기</div>
+      <div class="card-sub">엑셀(.xlsx) 또는 CSV 파일을 업로드하면 학생 목록에 자동으로 반영됩니다</div>
+      <div class="drop-zone" id="ban-drop-zone"
+           ondragover="event.preventDefault();this.classList.add('dragover')"
+           ondragleave="this.classList.remove('dragover')"
+           ondrop="handleFileDrop(event,'ban');this.classList.remove('dragover')"
+           onclick="document.getElementById('ban-file-input').click()">
+        <div class="drop-zone-icon">📂</div>
+        <div class="drop-zone-text">파일을 여기에 끌어다 놓거나 클릭해서 선택하세요</div>
+        <div class="drop-zone-sub">.xlsx · .xls · .csv 지원 · 최대 10MB</div>
+        <label class="upload-btn" onclick="event.stopPropagation()">
+          파일 선택
+          <input type="file" id="ban-file-input" accept=".xlsx,.xls,.csv" style="display:none"
+                 onchange="handleFileInput(this,'ban')">
+        </label>
+      </div>
+      <div class="upload-result" id="ban-upload-result"></div>
+      <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+        <button class="btn" style="font-size:12px;padding:6px 14px;color:#A32D2D;border-color:#A32D2D" onclick="resetAllData()">🗑 데이터 초기화</button>
+        <span style="font-size:11px;color:#aaa">업로드 전 기존 데이터를 삭제합니다</span>
+      </div>
+    </div>
+
+    <div id="notes-done-notice" style="display:none;background:#f0fde8;border:1px solid #C0DD97;border-radius:10px;padding:12px 16px;margin-bottom:12px;font-size:13px;color:#3B6D11;font-weight:500"></div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div style="font-size:14px;font-weight:600">반 개수 설정</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <label style="font-size:12px;color:#888">반 개수</label>
+          <input type="number" id="num-classes" value="3" min="2" max="10"
+                 style="width:64px;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;text-align:center"
+                 oninput="updateClassCount(this.value)">
+          <span style="font-size:12px;color:#888">반 &nbsp;(2~10반 설정 가능)</span>
+        </div>
+        <div style="font-size:12px;color:#aaa">변경 시 AI 분석에 즉시 반영됩니다</div>
+      </div>
+    </div>
+
+    <div class="grid4" style="margin-bottom:16px">
+      <div class="stat-card"><div class="stat-num" id="ban-stat-total">90</div><div class="stat-label">전체 학생</div></div>
+      <div class="stat-card"><div class="stat-num" id="ban-stat-gender" style="color:#185FA5">45/45</div><div class="stat-label">남/여</div></div>
+      <div class="stat-card"><div class="stat-num" id="ban-stat-special" style="color:#854F0B">3</div><div class="stat-label">특수교육</div></div>
+      <div class="stat-card"><div class="stat-num" id="ban-stat-conflict" style="color:#A32D2D">10</div><div class="stat-label">갈등 관계</div></div>
+    </div>
+    <div class="card">
+      <div class="tab-row">
+        <div class="tab active" onclick="switchTab(event,'bt-student','bt')">학생 목록</div>
+        <div class="tab" onclick="switchTab(event,'bt-relation','bt')">관계 데이터</div>
+      </div>
+      <div class="tab-content active" id="bt-student">
+        <div class="toolbar">
+          <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" placeholder="이름 검색..." oninput="filterTbl(this.value)"></div>
+          <button class="filter-btn on" onclick="setFilter(this,'전체')">전체</button>
+          <button class="filter-btn" onclick="setFilter(this,'남')">남</button>
+          <button class="filter-btn" onclick="setFilter(this,'여')">여</button>
+
+          <button class="filter-btn" onclick="setFilter(this,'특수')">특수</button>
+          <button class="btn btn-primary" onclick="openModal()">+ 추가</button>
+        </div>
+        <div class="notice notice-warn" id="teacher-note-notice">⚠ 교사 소견 미입력 학생 12명 — AI 분석 정확도를 위해 입력을 권장합니다</div>
+        <div class="table-wrap">
+          <table><thead><tr>
+            <th style="width:140px">이름</th><th style="width:36px">성별</th><th style="width:52px">성적</th>
+            <th style="width:52px">키</th><th style="width:52px">시력</th><th style="width:60px">주의력</th>
+            <th>태그</th><th style="width:52px">소견</th><th style="width:50px"></th>
+          </tr></thead>
+          <tbody id="ban-tbody">
+            <tr data-name="김민준" data-gender="남" data-flag="갈등"><td><div class="name-cell"><div class="avatar av-b">김민</div>김민준</div></td><td>남</td><td><span class="level-상">상</span></td><td>168cm</td><td>정상</td><td>높음</td><td><span class="badge bb">리더십</span> <span class="badge br">갈등이력</span></td><td><span class="badge bg2">완료</span></td><td><button class="edit-btn" onclick="openModal('김민준')">편집</button></td></tr>
+            <tr data-name="이서연" data-gender="여" data-flag="갈등"><td><div class="name-cell"><div class="avatar av-r">이서</div>이서연</div></td><td>여</td><td><span class="level-상">상</span></td><td>158cm</td><td>약함</td><td>높음</td><td><span class="badge br">갈등이력</span></td><td><span class="badge bg2">완료</span></td><td><button class="edit-btn" onclick="openModal('이서연')">편집</button></td></tr>
+            <tr data-name="박지호" data-gender="남" data-flag=""><td><div class="name-cell"><div class="avatar av-w">박지</div>박지호</div></td><td>남</td><td><span class="level-중">중</span></td><td>162cm</td><td>정상</td><td>낮음</td><td><span class="badge bw">관계고립</span></td><td><span class="badge bg2">완료</span></td><td><button class="edit-btn">편집</button></td></tr>
+            <tr data-name="신동현" data-gender="남" data-flag="특수"><td><div class="name-cell"><div class="avatar av-w">신동</div>신동현</div></td><td>남</td><td><span class="level-하">하</span></td><td>163cm</td><td>정상</td><td>낮음</td><td><span class="badge bw">ADHD</span> <span class="badge bb">특수교육</span></td><td><span class="badge bg2">완료</span></td><td><button class="edit-btn">편집</button></td></tr>
+            <tr data-name="한지민" data-gender="여" data-flag=""><td><div class="name-cell"><div class="avatar av-g">한지</div>한지민</div></td><td>여</td><td><span class="level-상">상</span></td><td>160cm</td><td>약함</td><td>높음</td><td><span class="badge bb">리더십</span> <span class="badge bg2">모범생</span></td><td><span class="badge bg2">완료</span></td><td><button class="edit-btn">편집</button></td></tr>
+            <tr data-name="오승현" data-gender="남" data-flag="갈등"><td><div class="name-cell"><div class="avatar av-b">오승</div>오승현</div></td><td>남</td><td><span class="level-중">중</span></td><td>165cm</td><td>정상</td><td>중간</td><td><span class="badge bb">외향</span></td><td><span class="badge bw">미입력</span></td><td><button class="edit-btn">편집</button></td></tr>
+            <tr data-name="송지우" data-gender="여" data-flag=""><td><div class="name-cell"><div class="avatar av-g">송지</div>송지우</div></td><td>여</td><td><span class="level-상">상</span></td><td>161cm</td><td>정상</td><td>높음</td><td><span class="badge bb">리더십</span> <span class="badge bg2">갈등중재</span></td><td><span class="badge bg2">완료</span></td><td><button class="edit-btn">편집</button></td></tr>
+            <tr data-name="도하영" data-gender="여" data-flag=""><td><div class="name-cell"><div class="avatar av-r">도하</div>도하영</div></td><td>여</td><td><span class="level-하">하</span></td><td>155cm</td><td>정상</td><td>낮음</td><td><span class="badge bw">전학생</span> <span class="badge bw">적응중</span></td><td><span class="badge bg2">완료</span></td><td><button class="edit-btn">편집</button></td></tr>
+            <tr data-name="방유진" data-gender="여" data-flag="갈등"><td><div class="name-cell"><div class="avatar av-g">방유</div>방유진</div></td><td>여</td><td><span class="level-상">상</span></td><td>163cm</td><td>정상</td><td>높음</td><td><span class="badge bb">리더십</span></td><td><span class="badge bg2">완료</span></td><td><button class="edit-btn">편집</button></td></tr>
+            <tr data-name="탁승우" data-gender="남" data-flag="특수"><td><div class="name-cell"><div class="avatar av-p">탁승</div>탁승우</div></td><td>남</td><td><span class="level-하">하</span></td><td>161cm</td><td>정상</td><td>낮음</td><td><span class="badge bw">학습장애</span> <span class="badge bb">특수교육</span></td><td><span class="badge bg2">완료</span></td><td><button class="edit-btn">편집</button></td></tr>
+          </tbody></table>
+        </div>
+        
+      </div>
+      <div class="tab-content" id="bt-relation">
+        <div class="grid2">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:10px">갈등 관계 <span class="badge br">6쌍</span></div>
+            <div class="relation-row"><div class="rel-icon ri-red">!</div><div style="flex:1;font-size:12px">김민준 ↔ 이서연</div><span class="badge br">심각</span></div>
+            <div class="relation-row"><div class="rel-icon ri-red">!</div><div style="flex:1;font-size:12px">이서연 ↔ 방유진</div><span class="badge br">심각</span></div>
+            <div class="relation-row"><div class="rel-icon ri-warn">!</div><div style="flex:1;font-size:12px">정도윤 ↔ 배성민</div><span class="badge bw">중간</span></div>
+            <div class="relation-row"><div class="rel-icon ri-warn">!</div><div style="flex:1;font-size:12px">오승현 ↔ 엄준혁</div><span class="badge bw">중간</span></div>
+            <div class="relation-row"><div class="rel-icon ri-warn">!</div><div style="flex:1;font-size:12px">신동현 ↔ 배성민</div><span class="badge bw">낮음</span></div>
+            <div class="relation-row"><div class="rel-icon ri-warn">!</div><div style="flex:1;font-size:12px">김민준 ↔ 오승현</div><span class="badge bw">낮음</span></div>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:10px">친한 관계 <span class="badge bg2">4쌍</span></div>
+            <div class="relation-row"><div class="rel-icon" style="background:#EAF3DE;color:#3B6D11">♥</div><div style="flex:1;font-size:12px">박지호 ↔ 남궁현</div><span class="badge bg2">유일한 친구</span></div>
+            <div class="relation-row"><div class="rel-icon" style="background:#EAF3DE;color:#3B6D11">♥</div><div style="flex:1;font-size:12px">홍준서 ↔ 구나연</div><span class="badge bg2">정서 지지</span></div>
+            <div class="relation-row"><div class="rel-icon" style="background:#EAF3DE;color:#3B6D11">♥</div><div style="flex:1;font-size:12px">노은지 ↔ 도하영</div><span class="badge bg2">서로 위안</span></div>
+            <div class="relation-row"><div class="rel-icon" style="background:#EAF3DE;color:#3B6D11">♥</div><div style="flex:1;font-size:12px">송지우 ↔ 백서희</div><span class="badge bg2">친함</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="goHome()">← 홈</button>
+      <button class="btn btn-primary" id="ban1-next-btn" onclick="goScreen('ban2')">다음: 조건 설정 →</button>
+    </div>
+  </div>
+
+  <!-- 반배정 2단계: 조건 설정 -->
+  <div class="screen" id="ban2">
+    <div class="page-header">
+      <div class="back-btn" onclick="goScreen('ban1')">← 학생 데이터</div>
+      <div class="page-title">반배정 — 조건 설정</div>
+      <div class="page-sub">3가지 타입으로 조건을 설정하세요</div>
+    </div>
+    <div class="grid2">
+      <div>
+        <div class="card">
+          <div class="tag tag-red">절대 조건</div>
+          <div class="card-title">무조건 지켜야 하는 조건</div>
+          <div class="card-sub">충족 못하면 AI가 즉시 경고합니다</div>
+
+          <!-- 예시 (실제 적용 안 됨) -->
+          <div style="background:#f5f5f0;border-radius:8px;padding:10px 12px;margin-bottom:8px;border:1px dashed #ddd">
+            <div style="font-size:10px;color:#aaa;font-weight:600;margin-bottom:6px">📌 예시 — 실제 적용되지 않습니다. 아래에 직접 추가해주세요.</div>
+            <div style="font-size:11px;color:#bbb;line-height:2">
+              예) 김민준 ↔ 이서연 <span style="background:#FCEBEB;color:#A32D2D;padding:1px 6px;border-radius:4px;font-size:10px">분리</span><br>
+              예) 박지호 ↔ 남궁현 <span style="background:#EAF3DE;color:#3B6D11;padding:1px 6px;border-radius:4px;font-size:10px">같은 반</span><br>
+              예) 신동현 <span style="background:#FAEEDA;color:#854F0B;padding:1px 6px;border-radius:4px;font-size:10px">특수 배려</span>
+            </div>
+          </div>
+          <div id="ban-abs-list"></div>
+          <div class="add-row" style="flex-wrap:wrap;gap:6px">
+            <select id="ban-abs-type" onchange="toggleAbsInput(this.value)" style="flex:1;min-width:90px"><option>분리</option><option>같은 반</option><option>특수 배려</option></select>
+            <input type="text" id="ban-abs-input-a" placeholder="학생 이름 A" style="flex:1;min-width:80px;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:12px">
+            <span id="ban-abs-sep" style="display:flex;align-items:center;font-size:12px;color:#888">↔</span>
+            <input type="text" id="ban-abs-input-b" placeholder="학생 이름 B" style="flex:1;min-width:80px;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:12px">
+            <button class="btn" style="white-space:nowrap" onclick="banAddAbs()">추가</button>
+          </div>
+        </div>
+
+      </div>
+      <div>
+        <div class="card">
+          <div class="tag tag-green">기타 조건 (챗봇)</div>
+          <div class="card-title">편하게 말씀해주세요</div>
+          <div class="card-sub">AI가 자동으로 조건으로 변환합니다</div>
+          <div class="quick-btns">
+            <div class="quick-btn" onclick="fillChat('ban-chat-input','작년에 싸운 학생들 분리해주세요')">작년 갈등 분리</div>
+            <div class="quick-btn" onclick="fillChat('ban-chat-input','형제자매 다른 반으로 해주세요')">형제자매 분리</div>
+            <div class="quick-btn" onclick="fillChat('ban-chat-input','전학생 친화적인 반으로 배정해주세요')">전학생 배려</div>
+            <div class="quick-btn" onclick="fillChat('ban-chat-input','리더 학생을 각 반에 골고루 배치해주세요')">리더 분산</div>
+          </div>
+          <div class="chat-wrap" id="ban-chat-wrap">
+            <div class="chat-msg"><div class="bubble-ai">안녕하세요 선생님! 반배정에서 특별히 고려할 사항이 있으시면 편하게 말씀해 주세요.</div></div>
+            <div style="text-align:center;margin:6px 0"><span style="font-size:10px;color:#bbb;background:#eeecea;padding:2px 10px;border-radius:10px">예시 대화</span></div>
+            <div class="chat-msg chat-right"><div class="bubble-user" style="opacity:0.55">작년 3반에서 패싸움이 있었어요. 관련 학생들 분산시켜주세요</div></div>
+            <div class="chat-msg"><div class="bubble-ai" style="opacity:0.55">확인했습니다. 작년 3반 출신 학생들을 각 반에 균등 분산하는 조건을 추가했습니다.</div></div>
+            <div class="chat-msg chat-right"><div class="bubble-user" style="opacity:0.55">도하영이 전학생인데 낯선 환경 적응이 느려요</div></div>
+            <div class="chat-msg"><div class="bubble-ai" style="opacity:0.55">도하영 학생은 친화력 높은 학생 옆 배치 + 안정적인 반으로 배정하겠습니다.</div></div>
+            <div style="text-align:center;margin:6px 0"><span style="font-size:10px;color:#bbb;background:#eeecea;padding:2px 10px;border-radius:10px">예시 끝 — 아래에 조건을 직접 입력하세요</span></div>
+          </div>
+          <div class="chat-input-row">
+            <input type="text" id="ban-chat-input" placeholder="추가 사항 입력..." onkeydown="if(event.key==='Enter')sendChatReal('ban')">
+            <button class="btn btn-primary" style="white-space:nowrap" onclick="sendChatReal('ban')">전송</button>
+          </div>
+          <div style="margin-top:12px">
+            <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:500">AI가 파악한 추가 조건</div>
+            <div id="ban-parsed-list"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:10px">전체 조건 요약</div>
+          <div class="summary-box">
+            <div class="summary-row"><span class="summary-key">반 개수</span><span class="summary-val" id="sum-classes">3개 반</span></div>
+            <div class="summary-row"><span class="summary-key">절대 조건</span><span class="summary-val" id="sum-abs">5개</span></div>
+
+            <div class="summary-row"><span class="summary-key">챗봇 추가 조건</span><span class="summary-val" id="sum-chat">0개</span></div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="goScreen('ban1')">← 학생 데이터</button>
+      <button class="btn btn-primary" id="btn-run-analysis" onclick="runClassAssignment()">AI 분석 실행 →</button>
+    </div>
+  </div>
+
+  <!-- 반배정 3단계: AI 분석 -->
+  <div class="screen" id="ban3">
+    <div class="page-header">
+      <div class="back-btn" onclick="goScreen('ban2')">← 조건 설정</div>
+      <div class="page-title">반배정 — AI 분석 결과</div>
+      <div class="page-sub">총 12개 조건 분석 완료 · 3개 배치안 생성 · 조건 충돌 1건 자동 해결</div>
+    </div>
+
+    <div class="plan-tabs">
+      <div class="plan-tab active" id="tab-a" onclick="switchPlan(0,this)">
+        <div class="rec-badge" id="rec-badge-a">AI 추천</div>
+        <div class="plan-tab-name">배치안 A</div>
+        <div class="plan-score score-g" id="score-a">-</div>
+        <div class="plan-tab-label">학급 안정성 지수</div>
+        <div style="font-size:9px;color:#aaa;margin-top:2px">전체 균형 최적화</div>
+        <div class="bar"><div class="bar-fill fill-g" id="bar-a" style="width:0%"></div></div>
+        <div style="font-size:11px;color:#888;margin-top:6px" id="info-a">분석 전</div>
+      </div>
+      <div class="plan-tab" onclick="switchPlan(1,this)">
+        <div class="rec-badge" id="rec-badge-b" style="display:none">AI 추천</div>
+        <div class="plan-tab-name">배치안 B</div>
+        <div class="plan-score score-w" id="score-b">-</div>
+        <div class="plan-tab-label">학급 안정성 지수</div>
+        <div style="font-size:9px;color:#aaa;margin-top:2px">친한친구 같은반 우선</div>
+        <div class="bar"><div class="bar-fill fill-w" id="bar-b" style="width:0%"></div></div>
+        <div style="font-size:11px;color:#888;margin-top:6px" id="info-b">분석 전</div>
+      </div>
+      <div class="plan-tab" onclick="switchPlan(2,this)">
+        <div class="rec-badge" id="rec-badge-c" style="display:none">AI 추천</div>
+        <div class="plan-tab-name">배치안 C</div>
+        <div class="plan-score score-r" id="score-c">-</div>
+        <div class="plan-tab-label">학급 안정성 지수</div>
+        <div style="font-size:9px;color:#aaa;margin-top:2px">성적/성비 균등 우선</div>
+        <div class="bar"><div class="bar-fill fill-r" id="bar-c" style="width:0%"></div></div>
+        <div style="font-size:11px;color:#888;margin-top:6px" id="info-c">분석 전</div>
+      </div>
+    </div>
+    <div class="plan-detail active" id="p0">
+      <div class="grid4" style="margin-bottom:14px">
+        <div class="stat-card"><div class="stat-num score-g">12/12</div><div class="stat-label">조건 충족</div></div>
+        <div class="stat-card"><div class="stat-num" style="color:#185FA5;font-size:16px">30·30·30</div><div class="stat-label">반별 학생 수</div></div>
+        <div class="stat-card"><div class="stat-num score-g">0</div><div class="stat-label">갈등 쌍</div></div>
+        <div class="stat-card"><div class="stat-num score-g">0</div><div class="stat-label">고립 학생</div></div>
+      </div>
+      <div class="class-grid-wrap" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
+        <div class="class-col"><div class="class-col-title">1반 <span class="badge bg2">안정성 94</span></div><span class="schip spec">신동현★</span><span class="schip">김민준</span><span class="schip">한지민</span><span class="schip">송지우</span><span class="schip">오승현</span><span class="schip">강예은</span><span class="schip">최수아</span><span class="schip">정도윤</span><span class="schip">류하은</span><span class="schip">배성민</span><div class="chip-meta">10명</div></div>
+        <div class="class-col"><div class="class-col-title">2반 <span class="badge bg2">안정성 91</span></div><span class="schip spec">박지호♥</span><span class="schip spec">남궁현♥</span><span class="schip care">도하영▲</span><span class="schip">윤재원</span><span class="schip">홍준서</span><span class="schip">구나연</span><span class="schip">문현우</span><span class="schip">노은지</span><span class="schip">심재훈</span><span class="schip">채린</span><div class="chip-meta">10명</div></div>
+        <div class="class-col"><div class="class-col-title">3반 <span class="badge bg2">안정성 91</span></div><span class="schip spec">탁승우★</span><span class="schip">이서연</span><span class="schip">방유진</span><span class="schip">백서희</span><span class="schip">전하늘</span><span class="schip">엄준혁</span><span class="schip">고태양</span><span class="schip">권민서</span><span class="schip">라민성</span><span class="schip">홍준희</span><div class="chip-meta">10명</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px">AI 배치 근거</div>
+        <div class="reason-row"><div class="ri2 ri2-g">✓</div><div class="reason-text">김민준·이서연 다른 반 배정 완료 <small>— 절대 조건 충족</small></div></div>
+        <div class="reason-row"><div class="ri2 ri2-g">✓</div><div class="reason-text">이서연·방유진 다른 반 배정 완료 <small>— 성비 ±2명 허용으로 해결</small></div></div>
+        <div class="reason-row"><div class="ri2 ri2-g">✓</div><div class="reason-text">박지호·남궁현 2반 같은 반 배정 <small>— 고립 학생 친구 배려</small></div></div>
+        <div class="reason-row"><div class="ri2 ri2-g">✓</div><div class="reason-text">신동현(ADHD) 1반 특수 배려 배치 <small>— 교사 근처 자리 예약</small></div></div>
+        <div class="reason-row"><div class="ri2 ri2-g">✓</div><div class="reason-text">도하영(전학생) 친화형 2반 배정 <small>— 챗봇 조건 반영</small></div></div>
+        <div class="reason-row"><div class="ri2 ri2-b">i</div><div class="reason-text">성적 상·중·하 각 반 10명씩 균등 배분 <small>— 균형 조건 2순위 충족</small></div></div>
+        <div class="reason-row"><div class="ri2 ri2-b">i</div><div class="reason-text">리더십 강한 학생 각 반 3명씩 분산 <small>— 균형 조건 3순위 충족</small></div></div>
+      </div>
+    </div>
+    <div class="plan-detail" id="plan-1">
+      <div class="grid4" style="margin-bottom:14px">
+        <div class="stat-card"><div class="stat-num score-w">10/12</div><div class="stat-label">조건 충족</div></div>
+        <div class="stat-card"><div class="stat-num" style="color:#185FA5;font-size:16px">30·30·30</div><div class="stat-label">반별 학생 수</div></div>
+        <div class="stat-card"><div class="stat-num score-w">1</div><div class="stat-label">갈등 쌍</div></div>
+        <div class="stat-card"><div class="stat-num score-w">1</div><div class="stat-label">고립 학생</div></div>
+      </div>
+      <div class="card"><div class="card-title" style="margin-bottom:10px">미충족 조건</div>
+        <div class="reason-row"><div class="ri2 ri2-r">✕</div><div class="reason-text">박지호·남궁현 다른 반 배정됨 <small>— 성적 균등 우선 적용으로 분리</small></div></div>
+        <div class="reason-row"><div class="ri2 ri2-r">✕</div><div class="reason-text">정도윤·배성민 같은 반 <small>— 중간 갈등 이력, 모니터링 필요</small></div></div>
+      </div>
+    </div>
+    <div class="plan-detail" id="plan-2">
+      <div class="grid4" style="margin-bottom:14px">
+        <div class="stat-card"><div class="stat-num score-r">8/12</div><div class="stat-label">조건 충족</div></div>
+        <div class="stat-card"><div class="stat-num" style="color:#185FA5;font-size:16px">30·30·30</div><div class="stat-label">반별 학생 수</div></div>
+        <div class="stat-card"><div class="stat-num score-r">2</div><div class="stat-label">갈등 쌍</div></div>
+        <div class="stat-card"><div class="stat-num score-r">1</div><div class="stat-label">고립 학생</div></div>
+      </div>
+      <div class="card"><div class="card-title" style="margin-bottom:10px">미충족 조건</div>
+        <div class="reason-row"><div class="ri2 ri2-r">✕</div><div class="reason-text">박지호 관계 고립 유지 <small>— 남궁현과 다른 반</small></div></div>
+        <div class="reason-row"><div class="ri2 ri2-r">✕</div><div class="reason-text">정도윤·배성민 같은 반 <small>— 갈등 이력</small></div></div>
+        <div class="reason-row"><div class="ri2 ri2-r">✕</div><div class="reason-text">오승현·엄준혁 같은 반 <small>— 경쟁심 갈등</small></div></div>
+        <div class="reason-row"><div class="ri2 ri2-r">✕</div><div class="reason-text">도하영 전학생 배려 미적용 <small>— 친화형 배치 누락</small></div></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="goScreen('ban2')">← 조건 수정</button>
+      <button class="btn btn-primary" onclick="renderConfirmScreen();goScreen('ban4')">배치안 A 선택 →</button>
+    </div>
+  </div>
+
+  <!-- 반배정 4단계: 확정 -->
+  <div class="screen" id="ban4">
+    <div class="page-header">
+      <div class="back-btn" onclick="goScreen('ban3')">← AI 분석 결과</div>
+      <div class="page-title">반배정 — 최종 확정</div>
+      <div class="page-sub" id="ban4-sub">배치안 A 선택됨 · 수동으로 조정 후 확정하세요</div>
+    </div>
+    <div class="edit-banner">
+      <p>학생 이름을 클릭해 선택 → 다른 반 학생 클릭으로 이동</p>
+      <button class="btn" style="font-size:11px;padding:5px 10px" onclick="resetBanMove()">변경 초기화</button>
+    </div>
+    <div id="ban4-classes-wrap">
+      <!-- 실제 배정 결과로 동적 채워짐 -->
+    </div>
+    <div class="grid2" style="display:none">
+      <div>
+        <div class="class-final">
+          <div class="class-final-header"><div class="class-final-name">1반</div><div style="display:flex;gap:8px;align-items:center"><span class="badge bg2">안정성 94</span><span style="font-size:12px;color:#888" id="ban-cnt1">10명</span></div></div>
+          <div id="ban-cls1">
+            <span class="schip-selectable spec" onclick="banClickChip(this,'1')">신동현★</span>
+          </div>
+          <div class="chip-meta">남5 여5 · 상4 중3 하3</div>
+        </div>
+        <div class="class-final">
+          <div class="class-final-header"><div class="class-final-name">2반</div><div style="display:flex;gap:8px;align-items:center"><span class="badge bg2">안정성 91</span><span style="font-size:12px;color:#888" id="ban-cnt2">10명</span></div></div>
+          <div id="ban-cls2">
+            <span class="schip-selectable spec" onclick="banClickChip(this,'2')">박지호♥</span>
+          </div>
+          <div class="chip-meta">남5 여5 · 상4 중3 하3</div>
+        </div>
+      </div>
+      <div>
+        <div class="class-final">
+          <div class="class-final-header"><div class="class-final-name">3반</div><div style="display:flex;gap:8px;align-items:center"><span class="badge bg2">안정성 91</span><span style="font-size:12px;color:#888" id="ban-cnt3">10명</span></div></div>
+          <div id="ban-cls3">
+            <span class="schip-selectable spec" onclick="banClickChip(this,'3')">탁승우★</span><span class="schip-selectable" onclick="banClickChip(this,'3')">이서연</span><span class="schip-selectable" onclick="banClickChip(this,'3')">방유진</span><span class="schip-selectable" onclick="banClickChip(this,'3')">백서희</span><span class="schip-selectable" onclick="banClickChip(this,'3')">전하늘</span><span class="schip-selectable" onclick="banClickChip(this,'3')">엄준혁</span><span class="schip-selectable" onclick="banClickChip(this,'3')">고태양</span><span class="schip-selectable" onclick="banClickChip(this,'3')">권민서</span><span class="schip-selectable" onclick="banClickChip(this,'3')">라민성</span><span class="schip-selectable" onclick="banClickChip(this,'3')">홍준희</span>
+          </div>
+          <div class="chip-meta">남5 여5 · 상4 중3 하3</div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:8px">변경 사항</div>
+          <div id="ban-change-log" style="font-size:12px;color:#888;text-align:center;padding:12px 0">변경 사항 없음</div>
+        </div>
+      </div>
+    </div>
+    <div style="background:#f5f5f0;border-radius:8px;padding:10px 14px;font-size:11px;color:#888;margin-bottom:14px">★ 특수교육 배려 &nbsp;♥ 친구 배치 &nbsp;▲ 전학생 배려</div>
+    <div class="btn-row">
+      <button class="btn" onclick="goScreen('ban3')">← AI 분석으로</button>
+      <button class="btn btn-success" onclick="explainAndGenerateDocs()">확정 및 문서 생성 →</button>
+    </div>
+  </div>
+
+  <!-- 반배정 5단계: 문서 -->
+  <div class="screen" id="ban5">
+    <div class="page-header">
+      <div class="back-btn" onclick="goScreen('ban4')">← 배정 수정</div>
+      <div class="page-title">반배정 — 완료 및 문서</div>
+    </div>
+    <div class="success-banner">
+      <div class="success-title">반배정 확정 완료</div>
+      <div class="success-sub" id="ban5-sub">반배정이 완료되었습니다</div>
+    </div>
+    <div class="grid4" style="margin-bottom:16px">
+      <div class="stat-card"><div class="stat-num score-g" id="ban5-score">-</div><div class="stat-label">최종 안정성 지수</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#185FA5;font-size:16px" id="ban5-counts">-</div><div class="stat-label">반별 학생 수</div></div>
+      <div class="stat-card"><div class="stat-num score-g" id="ban5-conflict">0</div><div class="stat-label">갈등 쌍</div></div>
+      <div class="stat-card"><div class="stat-num score-g" id="ban5-cond">-</div><div class="stat-label">조건 충족</div></div>
+    </div>
+    <div class="card">
+      <div class="tag tag-blue">자동 생성 문서</div>
+      <div class="card-title" style="margin-bottom:4px">교사용 리포트</div>
+      <div class="card-sub">AI가 배정 근거를 자동으로 작성했습니다</div>
+      <div class="doc-paper" id="ban5-report">
+        <div class="doc-paper-title">반배정 결과 보고서</div>
+        <div class="doc-row"><div class="doc-key">배정 일시</div><div class="doc-val" id="ban5-date">-</div></div>
+        <div class="doc-row"><div class="doc-key">대상</div><div class="doc-val" id="ban5-target">-</div></div>
+        <div class="doc-row"><div class="doc-key">배정 방법</div><div class="doc-val">Class-Twin AI 최적화 알고리즘 (배치안 A 선택)</div></div>
+        <div class="doc-row"><div class="doc-key">학급 안정성</div><div class="doc-val" id="ban5-stability">-</div></div>
+        <div class="doc-row"><div class="doc-key">적용 조건</div><div class="doc-val" id="ban5-cond-detail">-</div></div>
+        <div class="doc-row"><div class="doc-key">특이사항</div><div class="doc-val" id="ban5-special">-</div></div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <div class="card-title" style="margin-bottom:10px">AI 배치 근거</div>
+        <div id="ban5-reasons"><div style="color:#aaa;font-size:13px">AI 분석 실행 후 표시됩니다</div></div>
+      </div>
+    </div>
+
+    <!-- 학생 배정 이유 검색 -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:6px">학생별 배정 이유 검색</div>
+      <div class="card-sub" style="margin-bottom:12px">이름을 입력하면 AI가 배정 이유를 설명합니다</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <input type="text" id="ban5-search-input" placeholder="학생 이름 입력..." style="flex:1;padding:10px 14px;border:1px solid #ddd;border-radius:10px;font-size:14px" onkeydown="if(event.key==='Enter')searchStudentReason()">
+        <button class="btn btn-primary" onclick="searchStudentReason()">검색</button>
+      </div>
+      <div id="ban5-search-result" style="display:none;background:#f9fdf5;border-radius:10px;padding:14px;border:1px solid #C0DD97;font-size:13px;line-height:1.8"></div>
+    </div>
+
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">다운로드 / 복사</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div class="dl-btn" onclick="downloadClassReport()"><div class="dl-icon di-pdf">TXT</div>리포트 저장 (.txt)</div>
+        <div class="dl-btn" onclick="copyClassReport()"><div class="dl-icon di-xl">📋</div>리포트 복사</div>
+      </div>
+      <div style="font-size:11px;color:#888;margin-top:8px">교사용 리포트와 AI 배치 근거를 함께 저장합니다.</div>
+    </div>
+
+
+    <div class="btn-row">
+      <button class="btn" onclick="goScreen('ban4')">← 배정 수정</button>
+      <button class="btn btn-primary" onclick="goHome()">홈으로 →</button>
+    </div>
+  </div>
+
+  <!-- ================= 자리배정 플로우 ================= -->
+
+  <!-- 자리배정 1단계: 조건 설정 -->
+  <div class="screen" id="seat1">
+    <div class="page-header">
+      <div class="back-btn" onclick="goHome()">← 홈으로</div>
+      <div class="page-title">자리배정 — 조건 설정</div>
+      <div class="page-sub">2반 · 4월 자리배정 · 30명 · 교실 6열 5행</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">학생 데이터 불러오기</div>
+      <div class="card-sub">엑셀(.xlsx) 또는 CSV 파일을 업로드하면 학생 목록에 자동으로 반영됩니다</div>
+      <div class="drop-zone" id="seat-drop-zone"
+           ondragover="event.preventDefault();this.classList.add('dragover')"
+           ondragleave="this.classList.remove('dragover')"
+           ondrop="handleFileDrop(event,'seat');this.classList.remove('dragover')"
+           onclick="document.getElementById('seat-file-input').click()">
+        <div class="drop-zone-icon">📂</div>
+        <div class="drop-zone-text">파일을 여기에 끌어다 놓거나 클릭해서 선택하세요</div>
+        <div class="drop-zone-sub">.xlsx · .xls · .csv 지원 · 최대 10MB</div>
+        <label class="upload-btn" onclick="event.stopPropagation()">
+          파일 선택
+          <input type="file" id="seat-file-input" accept=".xlsx,.xls,.csv" style="display:none"
+                 onchange="handleFileInput(this,'seat')">
+        </label>
+      </div>
+      <div class="upload-result" id="seat-upload-result"></div>
+      <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+        <button class="btn" style="font-size:12px;padding:6px 14px;color:#A32D2D;border-color:#A32D2D" onclick="resetAllData()">🗑 데이터 초기화</button>
+        <span style="font-size:11px;color:#aaa">업로드 전 기존 데이터를 삭제합니다</span>
+      </div>
+    </div>
+
+    <div class="grid4" style="margin-bottom:16px">
+      <div class="stat-card"><div class="stat-num" id="seat1-stat-total">0</div><div class="stat-label">배정 학생</div></div>
+      <div class="stat-card"><div class="stat-num" id="seat1-stat-attention" style="color:#854F0B">0</div><div class="stat-label">주의 학생</div></div>
+      <div class="stat-card"><div class="stat-num" id="seat1-stat-vision" style="color:#185FA5">0</div><div class="stat-label">시력 약함</div></div>
+      <div class="stat-card"><div class="stat-num" id="seat1-stat-special" style="color:#534AB7">0</div><div class="stat-label">특수교육</div></div>
+    </div>
+    <div class="grid2">
+      <div>
+        <div class="card">
+          <div class="tag tag-red">절대 조건</div>
+          <div class="card-title">반드시 지켜야 할 조건</div>
+          <div class="card-sub">아래 조건은 자동 배치 시 무조건 적용됩니다</div>
+          <div id="seat-abs-list">
+            <div class="cond-empty" style="font-size:12px;color:#aaa;padding:8px 4px">학생 데이터를 불러오면 자동 도출된 조건이 표시됩니다</div>
+          </div>
+          <div class="add-row">
+            <select id="seat-cond-type"><option>앞자리 배치</option><option>교사 근처</option><option>분리</option><option>옆자리 배치</option></select>
+            <input type="text" id="seat-cond-name" placeholder="학생 이름..." list="seat-student-names" autocomplete="off">
+            <datalist id="seat-student-names"></datalist>
+            <button class="btn btn-sm" onclick="seatAddCond()">추가</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="tag tag-blue">균형 조건 우선순위</div>
+          <div class="card-title">드래그로 순서를 조정하세요</div>
+          <div class="card-sub">위일수록 우선 적용됩니다</div>
+          <div id="seat-plist">
+            <div class="priority-item" draggable="true"><div class="priority-num">1</div><div class="priority-label">시력배려 — 앞자리 우선</div><div class="drag-handle">⠿</div></div>
+            <div class="priority-item" draggable="true"><div class="priority-num">2</div><div class="priority-label">특수교육(ADHD/학습장애) — 앞자리 우선</div><div class="drag-handle">⠿</div></div>
+            <div class="priority-item" draggable="true"><div class="priority-num">3</div><div class="priority-label">키 순서 배치 (앞 낮음→뒤 높음)</div><div class="drag-handle">⠿</div></div>
+            <div class="priority-item" draggable="true"><div class="priority-num">4</div><div class="priority-label">성별 교차 배치</div><div class="drag-handle">⠿</div></div>
+            <div class="priority-item" draggable="true"><div class="priority-num">5</div><div class="priority-label">친한 친구 분리 (수업 방해 방지)</div><div class="drag-handle">⠿</div></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="tag tag-green">교실 구조 설정</div>
+          <div class="card-title">교실 배치 형태</div>
+          <div class="card-sub">교실 규모와 좌석 배열을 설정하세요</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px"><label style="font-size:12px;color:#888;width:80px">가로 열 수</label><input type="number" id="seat-cols-input" value="6" min="4" max="8" style="width:60px;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:13px"><span style="font-size:12px;color:#888">열</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><label style="font-size:12px;color:#888;width:80px">세로 행 수</label><input type="number" id="seat-rows-input" value="5" min="3" max="8" style="width:60px;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:13px"><span style="font-size:12px;color:#888">행 (총 <span id="seat-total-seats">30</span>석)</span></div>
+
+          </div>
+        </div>
+        <div class="card">
+          <div class="tag tag-warn">이번 달 특이사항</div>
+          <div class="card-title">추가 고려사항</div>
+          <div class="card-sub">이번 달 자리배정에서만 적용할 특별 사항을 입력하세요</div>
+          <textarea id="seat-extra-note" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:12px;color:#333;resize:none;height:80px;font-family:inherit;line-height:1.6" placeholder="예) 이번 달은 모둠 활동이 많으니 친한 친구끼리 앉혀주세요&#10;예) 박지호 요즘 집중력이 떨어지니 앞자리로..."></textarea>
+          <div class="notice notice-info" style="margin-top:10px;margin-bottom:0">AI가 입력 내용을 읽고 조건에 자동 반영합니다</div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="goHome()">← 홈</button>
+      <button class="btn btn-primary" onclick="runSeatAssignment()">자동 배치 실행 →</button>
+    </div>
+  </div>
+
+  <!-- 자리배정 2단계: 자동 배치 -->
+  <div class="screen" id="seat2">
+    <div class="page-header">
+      <div class="back-btn" onclick="goScreen('seat1')">← 조건 설정</div>
+      <div class="page-title">자리배정 — 자동 배치 결과</div>
+      <div class="page-sub">AI가 12개 조건을 반영해 최적 자리를 배치했습니다</div>
+    </div>
+    <div class="grid4" style="margin-bottom:14px">
+      <div class="stat-card"><div class="stat-num" id="seat-stat-cond" style="color:#3B6D11">100%</div><div class="stat-label">조건 충족률</div></div>
+      <div class="stat-card"><div class="stat-num" id="seat-stat-conflict" style="color:#3B6D11">0</div><div class="stat-label">갈등 인접 쌍</div></div>
+      <div class="stat-card"><div class="stat-num" id="seat-stat-alert" style="color:#854F0B">0</div><div class="stat-label">주의 알림</div></div>
+      <div class="stat-card"><div class="stat-num" id="seat-stat-equity" style="color:#3B6D11">—</div><div class="stat-label">형평성 지수</div></div>
+    </div>
+    <div class="notice notice-warn" id="seat-ai-advice">⚠ 자동 배치 실행 후 AI 조언이 표시됩니다.</div>
+    <div id="seat-extra-interpretations" style="display:none;background:#f0f7ff;border:1px solid #B5D0F5;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:#1a1a18;line-height:1.8"></div>
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      <div style="flex:1">
+        <div class="classroom-wrap">
+          <div class="blackboard">칠 판</div>
+          <div class="teacher-desk">👩‍🏫 교탁</div>
+          <div class="seat-area" id="seat-grid-area">
+            <div class="seat-row">
+              <div class="seat vision" onclick="selSeat(this)"><div class="seat-num">1</div><div class="seat-icon">👁</div><div class="seat-name">한지민</div><div class="seat-tag">시력배려</div><div class="tooltip">한지민 · 시력 약함 → 앞자리<br>성적 상 · 여 · 리더십</div></div>
+              <div class="seat special" onclick="selSeat(this)"><div class="seat-num">2</div><div class="seat-icon">⚡</div><div class="seat-name">신동현</div><div class="seat-tag">ADHD배려</div><div class="tooltip">신동현 · ADHD 특수교육<br>교사 근처 앞자리 배정</div></div>
+              <div class="seat vision" onclick="selSeat(this)"><div class="seat-num">3</div><div class="seat-icon">👁</div><div class="seat-name">이서연</div><div class="seat-tag">시력배려</div><div class="tooltip">이서연 · 시력 약함 → 앞자리</div></div>
+              <div class="aisle"></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">4</div><div class="seat-name">최수아</div><div class="seat-tag">성적 중</div><div class="tooltip">최수아 · 성적 중 · 여 · 외향</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">5</div><div class="seat-name">송지우</div><div class="seat-tag">성적 상</div><div class="tooltip">송지우 · 성적 상 · 여 · 리더십</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">6</div><div class="seat-name">윤재원</div><div class="seat-tag">성적 상</div><div class="tooltip">윤재원 · 성적 상 · 남 · 리더십</div></div>
+            </div>
+            <div class="seat-row">
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">7</div><div class="seat-name">강예은</div><div class="seat-tag">성적 중</div><div class="tooltip">강예은 · 성적 중 · 여</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">8</div><div class="seat-name">김민준</div><div class="seat-tag">성적 상</div><div class="tooltip">김민준 · 성적 상 · 남<br>⚠ 갈등이력 있음</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">9</div><div class="seat-name">류하은</div><div class="seat-tag">성적 중</div><div class="tooltip">류하은 · 성적 중 · 여</div></div>
+              <div class="aisle"></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">10</div><div class="seat-name">구나연</div><div class="seat-tag">성적 중</div><div class="tooltip">구나연 · 성적 중 · 여</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">11</div><div class="seat-name">홍준서</div><div class="seat-tag">성적 하</div><div class="tooltip">홍준서 · 성적 하 · 남</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">12</div><div class="seat-name">문현우</div><div class="seat-tag">성적 상</div><div class="tooltip">문현우 · 성적 상 · 남</div></div>
+            </div>
+            <div class="seat-row">
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">13</div><div class="seat-name">오승현</div><div class="seat-tag">성적 중</div><div class="tooltip">오승현 · ⚠ 갈등이력</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">14</div><div class="seat-name">박지호</div><div class="seat-tag">중앙배치</div><div class="tooltip">박지호 · 3개월 연속 구석→중앙</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">15</div><div class="seat-name">노은지</div><div class="seat-tag">성적 하</div><div class="tooltip">노은지 · 성적 하 · 여</div></div>
+              <div class="aisle"></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">16</div><div class="seat-name">심재훈</div><div class="seat-tag">성적 중</div><div class="tooltip">심재훈 · 성적 중</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">17</div><div class="seat-name">채린</div><div class="seat-tag">성적 중</div><div class="tooltip">채린 · 성적 중 · 여</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">18</div><div class="seat-name">남궁현</div><div class="seat-tag">성적 중</div><div class="tooltip">남궁현 · 성적 중 · 남</div></div>
+            </div>
+            <div class="seat-row">
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">19</div><div class="seat-name">도하영</div><div class="seat-tag">전학생</div><div class="tooltip">도하영 · 전학생 · 적응 중</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">20</div><div class="seat-name">정도윤</div><div class="seat-tag">성적 하</div><div class="tooltip">정도윤 · 성적 하</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">21</div><div class="seat-name">라민성</div><div class="seat-tag">성적 중</div><div class="tooltip">라민성 · 성적 중</div></div>
+              <div class="aisle"></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">22</div><div class="seat-name">엄준혁</div><div class="seat-tag">성적 중</div><div class="tooltip">엄준혁 · 경쟁심 강함</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">23</div><div class="seat-name">권민서</div><div class="seat-tag">성적 중</div><div class="tooltip">권민서 · 다문화 가정</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">24</div><div class="seat-name">방유진</div><div class="seat-tag">성적 상</div><div class="tooltip">방유진 · 성적 상 · 리더십</div></div>
+            </div>
+            <div class="seat-row">
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">25</div><div class="seat-name">고태양</div><div class="seat-tag">성적 하</div><div class="tooltip">고태양 · 성적 하</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">26</div><div class="seat-name">배성민</div><div class="seat-tag">성적 중</div><div class="tooltip">배성민 · ⚠ 갈등이력</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">27</div><div class="seat-name">전하늘</div><div class="seat-tag">성적 하</div><div class="tooltip">전하늘 · 성적 하</div></div>
+              <div class="aisle"></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">28</div><div class="seat-name">백서희</div><div class="seat-tag">성적 상</div><div class="tooltip">백서희 · 성적 상 · 리더십</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">29</div><div class="seat-name">탁승우</div><div class="seat-tag">학습장애</div><div class="tooltip">탁승우 · 학습장애 · 개별 지원</div></div>
+              <div class="seat occupied" onclick="selSeat(this)"><div class="seat-num">30</div><div class="seat-name">홍준희</div><div class="seat-tag">성적 하</div><div class="tooltip">홍준희 · 성적 하</div></div>
+            </div>
+          </div>
+          <div class="legend">
+            <div class="leg-item"><div class="leg-dot leg-normal"></div>일반</div>
+            <div class="leg-item"><div class="leg-dot leg-vision"></div>시력배려</div>
+            <div class="leg-item"><div class="leg-dot leg-special">⚡</div>특수교육</div>
+            <div class="leg-item"><div class="leg-dot leg-conflict"></div>갈등주의</div>
+          </div>
+        </div>
+      </div>
+      <div style="width:240px;flex-shrink:0">
+        <div class="side-panel">
+          <div class="side-panel-title">AI 배치 알림</div>
+          <div id="seat-alerts-panel">
+            <div class="alert-item alert-info"><div class="alert-icon">i</div><div>자동 배치 실행 후 알림이 표시됩니다</div></div>
+          </div>
+        </div>
+        <div class="side-panel">
+          <div class="side-panel-title">형평성 현황</div>
+          <div id="seat-equity-panel"><div style="font-size:11px;color:#888">자동 배치 실행 후 표시됩니다</div></div>
+        </div>
+        <div class="side-panel">
+          <div class="side-panel-title">좌석 분포</div>
+          <div id="seat-distribution-panel" style="font-size:12px;color:#888;line-height:2"></div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="goScreen('seat1')">← 조건 수정</button>
+      <button class="btn btn-primary" onclick="goScreen('seat3')">수동 조정 →</button>
+    </div>
+  </div>
+
+  <!-- 자리배정 3단계: 수동 조정 -->
+  <div class="screen" id="seat3">
+    <div class="page-header">
+      <div class="back-btn" onclick="goScreen('seat2')">← 자동 배치</div>
+      <div class="page-title">자리배정 — 수동 조정</div>
+      <div class="page-sub">좌석을 클릭해 선택 후 다른 좌석을 클릭하면 자리가 바뀝니다</div>
+    </div>
+    <div class="edit-mode-bar">
+      <p>수동 조정 모드 — 두 자리를 클릭하면 서로 자리가 바뀝니다</p>
+    </div>
+    <div id="swap-status" class="swap-info">첫 번째 자리를 클릭하세요</div>
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      <div style="flex:1">
+        <div class="classroom-wrap">
+          <div class="blackboard">칠 판</div>
+          <div class="teacher-desk">👩‍🏫 교탁</div>
+          <div class="seat-area" id="seat-area-3">
+            <div class="seat-row">
+              <div class="seat vision" onclick="swapSeat(this)" data-name="한지민"><div class="seat-num">1</div><div class="seat-icon">👁</div><div class="seat-name">한지민</div><div class="seat-tag">시력배려</div></div>
+              <div class="seat special" onclick="swapSeat(this)" data-name="신동현"><div class="seat-num">2</div><div class="seat-icon">⚡</div><div class="seat-name">신동현</div><div class="seat-tag">ADHD</div></div>
+              <div class="seat vision" onclick="swapSeat(this)" data-name="이서연"><div class="seat-num">3</div><div class="seat-icon">👁</div><div class="seat-name">이서연</div><div class="seat-tag">시력배려</div></div>
+              <div class="aisle"></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="최수아"><div class="seat-num">4</div><div class="seat-name">최수아</div><div class="seat-tag">성적 중</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="송지우"><div class="seat-num">5</div><div class="seat-name">송지우</div><div class="seat-tag">성적 상</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="윤재원"><div class="seat-num">6</div><div class="seat-name">윤재원</div><div class="seat-tag">성적 상</div></div>
+            </div>
+            <div class="seat-row">
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="강예은"><div class="seat-num">7</div><div class="seat-name">강예은</div><div class="seat-tag">성적 중</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="김민준"><div class="seat-num">8</div><div class="seat-name">김민준</div><div class="seat-tag">성적 상</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="류하은"><div class="seat-num">9</div><div class="seat-name">류하은</div><div class="seat-tag">성적 중</div></div>
+              <div class="aisle"></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="구나연"><div class="seat-num">10</div><div class="seat-name">구나연</div><div class="seat-tag">성적 중</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="홍준서"><div class="seat-num">11</div><div class="seat-name">홍준서</div><div class="seat-tag">성적 하</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="문현우"><div class="seat-num">12</div><div class="seat-name">문현우</div><div class="seat-tag">성적 상</div></div>
+            </div>
+            <div class="seat-row">
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="오승현"><div class="seat-num">13</div><div class="seat-name">오승현</div><div class="seat-tag">성적 중</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="박지호"><div class="seat-num">14</div><div class="seat-name">박지호</div><div class="seat-tag">중앙배치</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="노은지"><div class="seat-num">15</div><div class="seat-name">노은지</div><div class="seat-tag">성적 하</div></div>
+              <div class="aisle"></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="심재훈"><div class="seat-num">16</div><div class="seat-name">심재훈</div><div class="seat-tag">성적 중</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="채린"><div class="seat-num">17</div><div class="seat-name">채린</div><div class="seat-tag">성적 중</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="남궁현"><div class="seat-num">18</div><div class="seat-name">남궁현</div><div class="seat-tag">성적 중</div></div>
+            </div>
+            <div class="seat-row">
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="도하영"><div class="seat-num">19</div><div class="seat-name">도하영</div><div class="seat-tag">전학생</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="정도윤"><div class="seat-num">20</div><div class="seat-name">정도윤</div><div class="seat-tag">성적 하</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="라민성"><div class="seat-num">21</div><div class="seat-name">라민성</div><div class="seat-tag">성적 중</div></div>
+              <div class="aisle"></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="엄준혁"><div class="seat-num">22</div><div class="seat-name">엄준혁</div><div class="seat-tag">성적 중</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="권민서"><div class="seat-num">23</div><div class="seat-name">권민서</div><div class="seat-tag">성적 중</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="방유진"><div class="seat-num">24</div><div class="seat-name">방유진</div><div class="seat-tag">성적 상</div></div>
+            </div>
+            <div class="seat-row">
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="고태양"><div class="seat-num">25</div><div class="seat-name">고태양</div><div class="seat-tag">성적 하</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="배성민"><div class="seat-num">26</div><div class="seat-name">배성민</div><div class="seat-tag">성적 중</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="전하늘"><div class="seat-num">27</div><div class="seat-name">전하늘</div><div class="seat-tag">성적 하</div></div>
+              <div class="aisle"></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="백서희"><div class="seat-num">28</div><div class="seat-name">백서희</div><div class="seat-tag">성적 상</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="탁승우"><div class="seat-num">29</div><div class="seat-name">탁승우</div><div class="seat-tag">학습장애</div></div>
+              <div class="seat occupied" onclick="swapSeat(this)" data-name="홍준희"><div class="seat-num">30</div><div class="seat-name">홍준희</div><div class="seat-tag">성적 하</div></div>
+            </div>
+          </div>
+          <div class="legend">
+            <div class="leg-item"><div class="leg-dot leg-normal"></div>일반</div>
+            <div class="leg-item"><div class="leg-dot leg-vision"></div>시력배려</div>
+            <div class="leg-item"><div class="leg-dot leg-special">⚡</div>특수교육</div>
+            <div class="leg-item"><div class="leg-dot leg-conflict"></div>갈등주의</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#E6F1FB;border:1px solid #185FA5"></div>선택됨</div>
+          </div>
+        </div>
+      </div>
+      <div style="width:240px;flex-shrink:0">
+        <div class="side-panel">
+          <div class="side-panel-title">변경 이력</div>
+          <div id="swap-log" style="font-size:12px;color:#888;text-align:center;padding:16px 0">변경 사항 없음</div>
+        </div>
+        <div class="side-panel">
+          <div class="side-panel-title">주의 사항</div>
+          <div id="seat3-alerts-panel"><div style="font-size:12px;color:#888;text-align:center;padding:10px 0">특이사항 없음</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="goScreen('seat2')">← 자동 배치</button>
+      <button class="btn btn-success" onclick="goScreen('seat4')">확정하기 →</button>
+    </div>
+  </div>
+
+  <!-- 자리배정 4단계: 확정 -->
+  <div class="screen" id="seat4">
+    <div class="page-header">
+      <div class="back-btn" onclick="goScreen('seat3')">← 수동 조정</div>
+      <div class="page-title">자리배정 — 최종 확정</div>
+      <div class="page-sub">최종 자리 배치를 확인하고 확정하세요</div>
+    </div>
+    <div class="grid4" style="margin-bottom:14px">
+      <div class="stat-card"><div class="stat-num" id="seat4-stat-cond" style="color:#3B6D11">—</div><div class="stat-label">조건 충족률</div></div>
+      <div class="stat-card"><div class="stat-num" id="seat4-stat-equity" style="color:#3B6D11">—</div><div class="stat-label">형평성 지수</div></div>
+      <div class="stat-card"><div class="stat-num" id="seat4-stat-conflict" style="color:#3B6D11">—</div><div class="stat-label">갈등 인접 쌍</div></div>
+      <div class="stat-card"><div class="stat-num" id="seat4-stat-swap" style="color:#185FA5">0</div><div class="stat-label">수동 변경 수</div></div>
+    </div>
+    <div class="notice notice-success" id="seat4-notice">최종 배치를 확인하고 확정하세요</div>
+    <div class="classroom-wrap">
+      <div class="blackboard">칠 판</div>
+      <div class="teacher-desk">👩‍🏫 교탁</div>
+      <div class="seat-area" id="seat-area-4"></div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot leg-normal"></div>일반</div>
+        <div class="leg-item"><div class="leg-dot leg-vision"></div>시력배려</div>
+        <div class="leg-item"><div class="leg-dot leg-special">⚡</div>특수교육</div>
+        <div class="leg-item"><div class="leg-dot leg-conflict"></div>갈등주의</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="goScreen('seat3')">← 수동 조정</button>
+      <button class="btn btn-success" onclick="confirmSeatAndGenerateDocs()">확정 및 문서 생성 →</button>
+    </div>
+  </div>
+
+  <!-- 자리배정 5단계: 문서 -->
+  <div class="screen" id="seat5">
+    <div class="page-header">
+      <div class="back-btn" onclick="goScreen('seat4')">← 확정 화면</div>
+      <div class="page-title">자리배정 — 완료 및 문서</div>
+    </div>
+    <div class="success-banner">
+      <div class="success-title">자리배정 확정 완료</div>
+      <div class="success-sub">2반 · 2025년 4월 자리배정 · 2025.04.01 확정 · 형평성 지수 89점</div>
+    </div>
+    <div class="grid4" style="margin-bottom:16px">
+      <div class="stat-card"><div class="stat-num" style="color:#3B6D11">100%</div><div class="stat-label">조건 충족률</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#3B6D11">89</div><div class="stat-label">형평성 지수</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#3B6D11">0</div><div class="stat-label">갈등 인접 쌍</div></div>
+      <div class="stat-card"><div class="stat-num">4월</div><div class="stat-label">다음 배정 예정</div></div>
+    </div>
+    <div class="card">
+      <div class="tag tag-blue">자동 생성 문서</div>
+      <div class="card-title" style="margin-bottom:4px">문서 선택 후 확인하세요</div>
+      <div class="card-sub">AI가 자리배정 근거와 결과를 자동으로 정리했습니다</div>
+      <div class="doc-tabs">
+        <div class="doc-tab active" onclick="switchDoc('seat',0,this)">자리배정 결과표</div>
+        <div class="doc-tab" onclick="switchDoc('seat',1,this)">학생별 배정 이유</div>
+        <div class="doc-tab" onclick="switchDoc('seat',2,this)">형평성 리포트</div>
+      </div>
+      <div class="doc-content active" id="seat-ddoc-0">
+        <div class="doc-paper">
+          <div class="doc-paper-title">2025년 4월 2반 자리배정 결과표</div>
+          <div class="doc-row"><div class="doc-key">배정 일시</div><div class="doc-val">2025년 4월 1일</div></div>
+          <div class="doc-row"><div class="doc-key">대상</div><div class="doc-val">한빛중학교 2학년 2반 30명</div></div>
+          <div class="doc-row"><div class="doc-key">교실 구조</div><div class="doc-val">6열 × 5행 · 가운데 통로 1개</div></div>
+          <div class="doc-row"><div class="doc-key">형평성 지수</div><div class="doc-val">89점 / 100점</div></div>
+          <div class="doc-row"><div class="doc-key">적용 조건</div><div class="doc-val">절대 조건 5개 전부 충족 · 균형 조건 5개 적용</div></div>
+          <div class="doc-row"><div class="doc-key">특이사항</div><div class="doc-val">박지호 구석자리 이력 보정 · 수동 변경 2건 포함</div></div>
+          <div class="doc-row"><div class="doc-key">다음 배정 예정</div><div class="doc-val">2025년 5월 1일</div></div>
+        </div>
+      </div>
+      <div class="doc-content" id="seat-ddoc-1">
+        <div style="font-size:13px;color:#888;margin-bottom:10px">학생 이름을 입력하면 AI가 그 학생의 자리 배정 이유를 짧게 설명합니다.</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <input type="text" id="seat5-search-input" placeholder="학생 이름 입력..." list="seat5-student-names" autocomplete="off" style="flex:1;padding:10px 14px;border:1px solid #ddd;border-radius:10px;font-size:14px" onkeydown="if(event.key==='Enter')searchSeatStudentReason()">
+          <datalist id="seat5-student-names"></datalist>
+          <button class="btn btn-primary" onclick="searchSeatStudentReason()">검색</button>
+        </div>
+        <div id="seat5-search-result" style="display:none;background:#f9fdf5;border-radius:10px;padding:14px;border:1px solid #C0DD97;font-size:13px;line-height:1.8;color:#1a1a18"></div>
+      </div>
+      <div class="doc-content" id="seat-ddoc-2">
+        <div class="doc-paper">
+          <div class="doc-paper-title">형평성 분석 리포트</div>
+          <div style="margin-bottom:12px">
+            <div style="font-size:12px;font-weight:600;color:#1a1a18;margin-bottom:8px">자리 유형별 배분 현황</div>
+            <div class="equity-bar-wrap"><div class="equity-label"><span>앞자리 (1~2행) 배분</span><span style="color:#3B6D11;font-weight:600">91%</span></div><div class="equity-bar"><div class="equity-fill" style="width:91%"></div></div></div>
+            <div class="equity-bar-wrap"><div class="equity-label"><span>창가자리 배분</span><span style="color:#854F0B;font-weight:600">74%</span></div><div class="equity-bar"><div class="equity-fill" style="width:74%;background:#BA7517"></div></div></div>
+            <div class="equity-bar-wrap"><div class="equity-label"><span>구석자리 배분</span><span style="color:#3B6D11;font-weight:600">89%</span></div><div class="equity-bar"><div class="equity-fill" style="width:89%"></div></div></div>
+          </div>
+          <div class="doc-row"><div class="doc-key">박지호</div><div class="doc-val">구석자리 3회 연속 → 이번 달 중앙 배치로 보정 완료</div></div>
+          <div class="doc-row"><div class="doc-key">창가자리</div><div class="doc-val">다음 배정 시 창가 미경험 학생 우선 배치 권장</div></div>
+        </div>
+        <div class="notice notice-info">형평성 지수 74% 미만 항목은 다음 달 배정 시 자동 우선 보정됩니다</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">다운로드 / 복사</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div class="dl-btn" onclick="downloadActiveSeatDoc()"><div class="dl-icon di-pdf">TXT</div>현재 탭 저장 (.txt)</div>
+        <div class="dl-btn" onclick="copyActiveSeatDoc()"><div class="dl-icon di-xl">📋</div>현재 탭 복사</div>
+        <div class="dl-btn" onclick="downloadAllSeatDocs()"><div class="dl-icon di-pdf">TXT</div>전체 문서 일괄 저장</div>
+      </div>
+      <div style="font-size:11px;color:#888;margin-top:8px">탭 위쪽의 결과표 / 형평성 리포트 중 보고 있는 문서가 저장됩니다. (학생별 검색 탭은 저장 대상 아님)</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="goScreen('seat4')">← 배정 수정</button>
+      <button class="btn btn-primary" onclick="goHome()">홈으로 →</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- 교사 소견 보기 모달 -->
+<div class="modal-overlay" id="note-modal-overlay" onclick="this.classList.remove('show')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:440px">
+    <div class="modal-title" id="note-modal-name">교사 소견</div>
+    <div id="note-modal-body" style="font-size:13px;color:#1a1a18;line-height:1.8;background:#f5f5f0;border-radius:8px;padding:14px;min-height:60px;white-space:pre-wrap"></div>
+    <div class="modal-btns"><button class="btn" onclick="document.getElementById('note-modal-overlay').classList.remove('show')">닫기</button></div>
+  </div>
+</div>
+
+<!-- 학생 편집 모달 -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">학생 정보 편집</div>
+    <div class="form-grid">
+      <div class="form-row"><div class="form-label">이름</div><input type="text" id="f-name" value="김민준"></div>
+      <div class="form-row"><div class="form-label">성별</div><select id="f-gender"><option>남</option><option>여</option></select></div>
+      <div class="form-row"><div class="form-label">성적</div><select><option>상</option><option>중</option><option>하</option></select></div>
+      <div class="form-row"><div class="form-label">키 (cm)</div><input type="number" value="168"></div>
+      <div class="form-row"><div class="form-label">시력</div><select><option>정상</option><option>약함</option></select></div>
+      <div class="form-row"><div class="form-label">주의력</div><select><option>높음</option><option>중간</option><option>낮음</option></select></div>
+    </div>
+    <div class="form-row"><div class="form-label">특수교육 대상</div><select><option>해당없음</option><option>ADHD</option><option>학습장애</option><option>기타</option></select></div>
+    <div class="form-row"><div class="form-label">교사 소견</div><textarea>리더십이 강하나 가끔 부정적 방향으로 흐름. 소그룹에서 효과적.</textarea></div>
+    <div class="modal-btns"><button class="btn" onclick="closeModal()">취소</button><button class="btn btn-primary" onclick="closeModal()">저장</button></div>
+  </div>
+</div>
+
+<script>
+/* ===== 파일 업로드 ===== */
+function handleFileDrop(e, flow) {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file) processUpload(file, flow);
+}
+
+function handleFileInput(input, flow) {
+  const file = input.files[0];
+  if (file) processUpload(file, flow);
+  input.value = '';
+}
+
+async function processUpload(file, flow) {
+  const allowed = ['.xlsx', '.xls', '.csv'];
+  const ext = '.' + file.name.split('.').pop().toLowerCase();
+  const resultEl = document.getElementById(flow + '-upload-result');
+
+  if (!allowed.includes(ext)) {
+    resultEl.textContent = '⚠ Excel(.xlsx, .xls) 또는 CSV 파일만 업로드 가능합니다';
+    resultEl.className = 'upload-result error';
+    resultEl.style.display = 'block';
+    return;
+  }
+
+  resultEl.textContent = '⏳ 업로드 중...';
+  resultEl.className = 'upload-result';
+  resultEl.style.display = 'block';
+
+  try {
+    const data = await uploadExcelFile(file);
+    if (data) {
+      resultEl.textContent = `✓ ${file.name} — ${data.count}명 업로드 완료`;
+      resultEl.className = 'upload-result';
+      if (data.students) updateAbsConditions(data.students, flow);
+
+      // 관계 데이터도 같은 파일에서 업로드 시도 (관계데이터 시트)
+      if (flow === 'ban') {
+        try {
+          const relData = await uploadRelationsFile(file);
+          if (relData && relData.count > 0) {
+            await loadRelations();
+            updateAbsConditions(data.students, 'ban');
+            showToast(`관계 데이터 ${relData.count}쌍 로드 완료`, 'success');
+          }
+        } catch(e) {
+          console.log('관계 시트 오류:', e.message);
+        }
+        // 백그라운드 소견 파싱 완료 폴링
+        showToast(`✅ ${data.count}명 업로드 완료 · 교사소견 AI 분석 중...`, 'success');
+      }
+    }
+  } catch (e) {
+    resultEl.textContent = `✕ 업로드 실패: ${e.message}`;
+    resultEl.className = 'upload-result error';
+  }
+}
+
+/* ===== 네비게이션 ===== */
+const BAN_SCREENS = ['ban1','ban2','ban3','ban4','ban5'];
+const BAN_LABELS = ['1 학생 데이터','2 조건 설정','3 AI 분석','4 확정','5 문서'];
+const SEAT_SCREENS = ['seat1','seat2','seat3','seat4','seat5'];
+const SEAT_LABELS = ['1 조건 설정','2 자동 배치','3 수동 조정','4 확정','5 문서'];
+let currentFlow = null;
+
+function renderNav(screens, labels, currentId) {
+  const nav = document.getElementById('nav-steps');
+  nav.innerHTML = '';
+  screens.forEach((s, i) => {
+    const idx = screens.indexOf(currentId);
+    const sp = document.createElement('span');
+    sp.className = 'sp';
+    sp.textContent = labels[i];
+    if (i === idx) sp.classList.add('active');
+    else if (i < idx) sp.classList.add('done');
+    sp.onclick = () => goScreen(s);
+    nav.appendChild(sp);
+  });
+}
+
+function goHome() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('home').classList.add('active');
+  document.getElementById('nav-steps').innerHTML = '';
+  currentFlow = null;
+  window.scrollTo(0,0);
+}
+
+function startFlow(flow) {
+  currentFlow = flow;
+  const screen = flow === 'ban' ? 'ban1' : 'seat1';
+  goScreen(screen);
+  if (flow === 'ban') {
+    loadStudents();
+    loadRelations();
+  } else if (flow === 'seat') {
+    if (typeof loadSeatConditionScreen === 'function') loadSeatConditionScreen();
+  }
+}
+
+function goScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  if (id.startsWith('ban')) {
+    currentFlow = 'ban';
+    renderNav(BAN_SCREENS, BAN_LABELS, id);
+    
+    // ban1 진입 시 파싱 상태 확인 (1페이지 다음 버튼)
+    if (id === 'ban1') {
+      checkParsingForBan1Button();
+    }
+    
+    // ban2 진입 시 파싱 상태 확인 (2페이지 AI 분석 버튼)
+    if (id === 'ban2') {
+      checkParsingStatusForButton();
+    }
+  } else if (id.startsWith('seat')) {
+    currentFlow = 'seat';
+    renderNav(SEAT_SCREENS, SEAT_LABELS, id);
+    if (id === 'seat1' && typeof loadSeatConditionScreen === 'function') {
+      loadSeatConditionScreen();
+    }
+    if (id === 'seat4' && typeof loadSeat4Screen === 'function') {
+      loadSeat4Screen();
+    }
+  } else {
+    document.getElementById('nav-steps').innerHTML = '';
+  }
+  window.scrollTo(0,0);
+}
+
+/* ===== Ban1 Next Button Control ===== */
+async function checkParsingForBan1Button() {
+  const btn = document.getElementById('ban1-next-btn');
+  if (!btn) return;
+  
+  try {
+    const res = await fetch(`${BASE_URL}/notes/status`);
+    const data = await res.json();
+    
+    if (data.done) {
+      // Parsing complete - enable button
+      btn.disabled = false;
+      btn.textContent = '다음: 조건 설정 →';
+      btn.classList.remove('btn-disabled');
+      btn.classList.add('btn-primary');
+    } else {
+      // Parsing in progress - disable button
+      btn.disabled = true;
+      btn.textContent = '교사소견 분석 중...';
+      btn.classList.remove('btn-primary');
+      btn.classList.add('btn-disabled');
+      
+      // Check again in 3 seconds
+      setTimeout(checkParsingForBan1Button, 3000);
+    }
+  } catch (e) {
+    console.error('Ban1 parsing check failed:', e);
+  }
+}
+
+/* ===== 파싱 상태 확인 및 버튼 제어 ===== */
+async function checkParsingStatusForButton() {
+  const btn = document.getElementById('btn-run-analysis');
+  if (!btn) return;
+  
+  try {
+    const res = await fetch(`${BASE_URL}/notes/status`);
+    const data = await res.json();
+    
+    if (data.done) {
+      // 파싱 완료 - 버튼 활성화
+      btn.disabled = false;
+      btn.textContent = 'AI 분석 실행 →';
+      btn.classList.remove('btn-disabled');
+      btn.classList.add('btn-primary');
+    } else {
+      // 파싱 중 - 버튼 비활성화
+      btn.disabled = true;
+      btn.textContent = '교사소견 분석 중...';
+      btn.classList.remove('btn-primary');
+      btn.classList.add('btn-disabled');
+      
+      // 3초 후 재확인
+      setTimeout(checkParsingStatusForButton, 3000);
+    }
+  } catch (e) {
+    console.error('Parsing status check failed:', e);
+  }
+}
+
+/* ===== 학생 데이터 탭 ===== */
+function switchTab(e, id, prefix) {
+  const container = document.getElementById(id).closest('.card');
+  container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  e.currentTarget.classList.add('active');
+}
+
+let _activeFilter = '전체';
+
+function filterTbl(v) {
+  document.querySelectorAll('#ban-tbody tr').forEach(tr => {
+    const nameMatch = tr.dataset.name && tr.dataset.name.includes(v);
+    const filterMatch = _activeFilter === '전체' ? true
+      : (_activeFilter === '남' || _activeFilter === '여') ? tr.dataset.gender === _activeFilter
+      : tr.dataset.flag === _activeFilter;
+    tr.style.display = (nameMatch && filterMatch) ? '' : 'none';
+  });
+}
+
+function setFilter(el, f) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  _activeFilter = f;
+  const searchVal = document.querySelector('.search-wrap input')?.value || '';
+  filterTbl(searchVal);
+}
+
+function showNote(name, note) {
+  const overlay = document.getElementById('note-modal-overlay');
+  document.getElementById('note-modal-name').textContent = name + ' — 교사 소견';
+  document.getElementById('note-modal-body').textContent = note;
+  overlay.classList.add('show');
+}
+
+function openModal(name) {
+  document.getElementById('modal-title').textContent = '학생 정보 편집' + (name ? ' — ' + name : '');
+  if (name) document.getElementById('f-name').value = name;
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+
+/* ===== 반배정 조건 설정 ===== */
+function toggleAbsInput(type) {
+  const sep = document.getElementById('ban-abs-sep');
+  const inputB = document.getElementById('ban-abs-input-b');
+  if (type === '특수 배려') {
+    sep.style.display = 'none';
+    inputB.style.display = 'none';
+  } else {
+    sep.style.display = 'flex';
+    inputB.style.display = '';
+  }
+}
+
+function banAddAbs() {
+  const type = document.getElementById('ban-abs-type').value;
+  const nameA = document.getElementById('ban-abs-input-a').value.trim();
+  const nameB = document.getElementById('ban-abs-input-b').value.trim();
+  if (!nameA) { alert('학생 이름 A를 입력해주세요'); return; }
+  if (type !== '특수 배려' && !nameB) { alert('학생 이름 B를 입력해주세요'); return; }
+
+  const iconMap = {분리:'✕','같은 반':'+','특수 배려':'★'};
+  const clsMap = {분리:'ci-red','같은 반':'ci-green','특수 배려':'ci-warn'};
+  const badgeMap = {분리:'br','같은 반':'bg2','특수 배려':'bw'};
+
+  const label = type === '특수 배려'
+    ? `${nameA} <span class="badge ${badgeMap[type]}">${type}</span>`
+    : `${nameA} ↔ ${nameB} <span class="badge ${badgeMap[type]}">${type}</span>`;
+
+  const el = document.createElement('div');
+  el.className = 'cond-item';
+  el.innerHTML = `<div class="cond-icon ${clsMap[type]}">${iconMap[type]}</div><div class="cond-text">${label}</div><button class="del-btn" onclick="this.closest('.cond-item').remove();updateSummary()">✕</button>`;
+  document.getElementById('ban-abs-list').appendChild(el);
+
+  document.getElementById('ban-abs-input-a').value = '';
+  document.getElementById('ban-abs-input-b').value = '';
+  updateSummary();
+}
+
+/* ===== 자리배정 조건 설정 ===== */
+function seatAddCond() {
+  const type = document.getElementById('seat-cond-type').value;
+  const name = document.getElementById('seat-cond-name').value.trim();
+  if (!name) return;
+  const iconMap = {'앞자리 배치':'👁','교사 근처':'⚡','분리':'✕','옆자리 배치':'♥'};
+  const clsMap = {'앞자리 배치':'ci-blue','교사 근처':'ci-warn','분리':'ci-red','옆자리 배치':'ci-green'};
+  const list = document.getElementById('seat-abs-list');
+  // 빈 placeholder 제거
+  const empty = list.querySelector('.cond-empty');
+  if (empty) empty.remove();
+  const el = document.createElement('div');
+  el.className = 'cond-item';
+  el.dataset.source = 'manual';
+  el.innerHTML = `<div class="cond-icon ${clsMap[type]}">${iconMap[type]}</div><div class="cond-text">${name} — ${type}</div><button class="del-btn" onclick="this.closest('.cond-item').remove()">✕</button>`;
+  list.appendChild(el);
+  document.getElementById('seat-cond-name').value = '';
+}
+
+/* ===== 드래그앤드롭 우선순위 (공통) ===== */
+function initDrag(listId) {
+  const list = document.getElementById(listId);
+  if (!list) return;
+  let dragSrc = null;
+  list.addEventListener('dragstart', e => { dragSrc = e.target.closest('.priority-item'); e.dataTransfer.effectAllowed = 'move'; });
+  list.addEventListener('dragover', e => { e.preventDefault(); const t = e.target.closest('.priority-item'); if (t && t !== dragSrc) t.classList.add('dragover'); });
+  list.addEventListener('dragleave', e => { const t = e.target.closest('.priority-item'); if (t) t.classList.remove('dragover'); });
+  list.addEventListener('drop', e => {
+    e.preventDefault();
+    const t = e.target.closest('.priority-item');
+    if (!t || t === dragSrc) { if(t) t.classList.remove('dragover'); return; }
+    t.classList.remove('dragover');
+    const items = [...list.children];
+    const si = items.indexOf(dragSrc), ti = items.indexOf(t);
+    if (si < ti) t.after(dragSrc); else t.before(dragSrc);
+    [...list.children].forEach((el, i) => el.querySelector('.priority-num').textContent = i + 1);
+  });
+}
+initDrag('ban-priority-list');
+initDrag('seat-plist');
+
+/* ===== 반 개수 설정 ===== */
+let numClasses = 3;
+
+// 초기 요약 업데이트
+updateSummary();
+
+function updateClassCount(val) {
+  const n = Math.max(2, Math.min(10, parseInt(val) || 3));
+  numClasses = n;
+  const label = document.getElementById('ban-class-count-label');
+  if (label) label.textContent = n;
+  updateSummary();
+}
+
+/* ===== 조건 요약 실시간 업데이트 ===== */
+function updateSummary() {
+  const absList = document.getElementById('ban-abs-list');
+  const chatList = document.getElementById('ban-parsed-list');
+  const absCnt = absList ? absList.querySelectorAll('.cond-item').length : 0;
+  const chatCnt = chatList ? chatList.querySelectorAll('.cond-item').length : 0;
+  const el = document.getElementById('sum-abs');
+  const ec = document.getElementById('sum-chat');
+  const es = document.getElementById('sum-classes');
+  if (el) el.textContent = absCnt + '개';
+  if (ec) ec.textContent = chatCnt + '개';
+  if (es) es.textContent = numClasses + '개 반';
+}
+
+/* ===== 챗봇 ===== */
+const aiReplies = [
+  '확인했습니다. 해당 내용을 조건으로 추가했습니다. 다른 사항이 있으신가요?',
+  '알겠습니다. 조건에 반영하겠습니다. 또 다른 특이사항이 있나요?',
+  '네, 해당 내용을 기타 조건으로 추가했습니다. 계속 말씀해 주세요.',
+];
+let aiIdx = 0;
+
+// 챗봇 대화 히스토리 저장
+const chatHistory = {
+  ban: [],
+  seat: []
+};
+
+async function sendChatReal(flow) {
+  const inp = document.getElementById(flow + '-chat-input');
+  const val = inp.value.trim();
+  if (!val) return;
+  
+  const wrap = document.getElementById(flow + '-chat-wrap');
+  
+  // 사용자 메시지 표시
+  const u = document.createElement('div');
+  u.className = 'chat-msg chat-right';
+  u.innerHTML = `<div class="bubble-user">${val}</div>`;
+  wrap.appendChild(u);
+  inp.value = '';
+  wrap.scrollTop = wrap.scrollHeight;
+  
+  // 히스토리에 사용자 메시지 추가
+  if (!chatHistory[flow]) chatHistory[flow] = [];
+  chatHistory[flow].push({ role: 'user', content: val });
+  
+  // AI 응답 받기
+  try {
+    const response = await api('POST', '/conditions/chat', { 
+      message: val, 
+      history: chatHistory[flow]
+    });
+    
+    // 히스토리에 AI 응답 추가
+    chatHistory[flow].push({ 
+      role: 'assistant', 
+      content: response.response || '확인했습니다.' 
+    });
+    
+    // AI 응답 표시
+    const a = document.createElement('div');
+    a.className = 'chat-msg';
+    a.innerHTML = `<div class="bubble-ai">${response.response || '확인했습니다.'}</div>`;
+    wrap.appendChild(a);
+    wrap.scrollTop = wrap.scrollHeight;
+    
+    // 파싱된 조건 처리
+    const conditions = response.parsed_conditions || [];
+    const questionType = response.question_type || 'clear_condition';
+    
+    console.log('📊 챗봇 응답:', {
+      message: response.response,
+      questionType: questionType,
+      conditions: conditions
+    });
+    
+    if (conditions.length > 0 && questionType === 'clear_condition') {
+      // 명확한 조건 → 즉시 추가
+      conditions.forEach(cond => {
+        const el = document.createElement('div');
+        el.className = 'cond-item';
+        const iconMap = {'분리': '✕', '같은 반': '+', 'trait_balance': '⚖', '기타': 'A'};
+        const clsMap = {'분리': 'ci-red', '같은 반': 'ci-green', 'trait_balance': 'ci-blue', '기타': 'ci-blue'};
+        const icon = iconMap[cond.type] || 'A';
+        const cls = clsMap[cond.type] || 'ci-blue';
+        
+        let label = '';
+        if (cond.type === 'trait_balance') {
+          const traitMap = {
+            'leadership': '리더십',
+            'sociability': '외향성',
+            'attention': '집중력',
+            'positive_influence': '긍정성'
+          };
+          const traitName = traitMap[cond.trait] || cond.trait;
+          const studentNames = cond.student_names || [];
+          const nameList = studentNames.slice(0, 10).join(', ');
+          const more = studentNames.length > 10 ? ` 등 ${studentNames.length}명` : '';
+          label = `${traitName} 학생 (${nameList}${more}) 각 반 균등 분산`;
+        } else if (cond.student_a && cond.student_b) {
+          label = `${cond.student_a} ↔ ${cond.student_b}`;
+        } else if (cond.student_a) {
+          label = cond.student_a;
+        } else {
+          label = cond.note || val;
+        }
+        
+        el.innerHTML = `<div class="cond-icon ${cls}">${icon}</div><div class="cond-text">${label} <span class="badge bb">${cond.type}</span></div><button class="del-btn" onclick="this.closest('.cond-item').remove();updateSummary()">✕</button>`;
+        document.getElementById(flow + '-parsed-list').appendChild(el);
+        
+        // AppState에도 추가
+        AppState.conditions.absolute.push(cond);
+      });
+      updateSummary();
+    } else if (questionType === 'simple_question') {
+      // 단순 질문 → 조건 추가 안 함 (이미 답변 표시됨)
+    } else if (questionType === 'ambiguous') {
+      // 애매한 조건 → 확인 질문 표시 (이미 답변에 포함됨)
+    }
+    
+  } catch (e) {
+    console.error('챗봇 오류:', e);
+    const a = document.createElement('div');
+    a.className = 'chat-msg';
+    a.innerHTML = `<div class="bubble-ai">죄송합니다. 오류가 발생했습니다: ${e.message}</div>`;
+    wrap.appendChild(a);
+    wrap.scrollTop = wrap.scrollHeight;
+  }
+}
+
+function fillChat(inputId, text) { document.getElementById(inputId).value = text; }
+
+/* ===== 반배정 AI 분석 ===== */
+function selOpt(el) {
+  document.querySelectorAll('.conflict-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+
+  const idx = [...el.parentElement.children].indexOf(el);
+  // 0: 성비 ±2명 허용 (분리 우선)
+  // 1: 분리 조건 완화 (성비 우선)
+  // 2: 교사가 직접 결정
+
+  if (idx === 0) {
+    // 분리 조건 유지, 성비 허용 범위 ±2명
+    AppState.conflictResolution = 'separation_first';
+    showToast('분리 조건 우선 적용 — 성비 ±2명 허용으로 설정됩니다', 'success');
+  } else if (idx === 1) {
+    // 성비 균등 유지, 분리 조건 완화
+    AppState.conflictResolution = 'gender_first';
+    showToast('성비 균등 우선 적용 — 분리 조건이 완화됩니다', 'warn');
+    // 분리 조건을 절대조건 목록에서 권고 조건으로 변경
+    document.querySelectorAll('#ban-abs-list .cond-item').forEach(item => {
+      const badge = item.querySelector('.badge');
+      if (badge && badge.textContent.trim() === '분리') {
+        badge.textContent = '분리(완화)';
+        badge.className = 'badge bw';
+        item.querySelector('.cond-icon').className = 'cond-icon ci-warn';
+      }
+    });
+  } else {
+    // 교사 직접 결정 → 수동 조정 단계로
+    AppState.conflictResolution = 'manual';
+    showToast('확정 단계에서 직접 수동 조정해주세요', 'warn');
+  }
+}
+
+function switchPlan(idx, tab) {
+  document.querySelectorAll('.plan-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.plan-detail').forEach(d => d.classList.remove('active'));
+  tab.classList.add('active');
+  // p0 / plan-1 / plan-2 혼재 대응
+  const el = document.getElementById(idx === 0 ? 'p0' : 'plan-' + idx);
+  if (el) el.classList.add('active');
+}
+
+/* ===== 반배정 확정 ===== */
+let banSelChip = null;
+function banClickChip(el, cls) {
+  if (!banSelChip) {
+    banSelChip = el;
+    el.classList.add('selected-chip');
+  } else {
+    if (banSelChip === el) { banSelChip.classList.remove('selected-chip'); banSelChip = null; return; }
+    const fromCls = banSelChip.closest('[id^="ban-cls"]').id.replace('ban-cls','');
+    const toCls = el.closest('[id^="ban-cls"]').id.replace('ban-cls','');
+    if (fromCls === toCls) { banSelChip.classList.remove('selected-chip'); banSelChip = null; return; }
+    el.parentElement.insertBefore(banSelChip, el);
+    banUpdateCnts();
+    banAddLog(banSelChip.textContent.trim(), fromCls, toCls);
+    banSelChip.classList.remove('selected-chip');
+    banSelChip = null;
+  }
+}
+function banUpdateCnts() {
+  ['1','2','3'].forEach(n => { document.getElementById('ban-cnt'+n).textContent = document.getElementById('ban-cls'+n).children.length + '명'; });
+}
+function banAddLog(name, from, to) {
+  const log = document.getElementById('ban-change-log');
+  if (log.textContent.trim() === '변경 사항 없음') log.innerHTML = '';
+  const el = document.createElement('div');
+  el.className = 'change-log-item';
+  el.innerHTML = `<span style="font-weight:500">${name}</span><span style="color:#888">${from}반 → ${to}반</span><span class="badge bw">수동</span>`;
+  log.appendChild(el);
+}
+function resetBanMove() {
+  goScreen('ban4');
+}
+
+/* ===== 자리배정 수동 조정 ===== */
+let swapFirst = null;
+window.swapCount = 0;
+
+function selSeat(el) {
+  document.querySelectorAll('#seat-area-3 .seat, .classroom-wrap .seat').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function swapSeat(el) {
+  if (!el.dataset.name) return;
+  if (!swapFirst) {
+    swapFirst = el;
+    el.classList.add('selected');
+    document.getElementById('swap-status').innerHTML = `<span>${el.dataset.name}</span> 선택됨 — 바꿀 자리를 클릭하세요`;
+  } else {
+    if (swapFirst === el) { swapFirst.classList.remove('selected'); swapFirst = null; document.getElementById('swap-status').innerHTML = '첫 번째 자리를 클릭하세요'; return; }
+    const n1 = swapFirst.querySelector('.seat-name').textContent;
+    const t1 = swapFirst.querySelector('.seat-tag').textContent;
+    const i1 = swapFirst.querySelector('.seat-icon') ? swapFirst.querySelector('.seat-icon').textContent : '';
+    const n2 = el.querySelector('.seat-name').textContent;
+    const t2 = el.querySelector('.seat-tag').textContent;
+    const i2 = el.querySelector('.seat-icon') ? el.querySelector('.seat-icon').textContent : '';
+    swapFirst.querySelector('.seat-name').textContent = n2;
+    swapFirst.querySelector('.seat-tag').textContent = t2;
+    if (swapFirst.querySelector('.seat-icon')) swapFirst.querySelector('.seat-icon').textContent = i2;
+    swapFirst.dataset.name = n2;
+    el.querySelector('.seat-name').textContent = n1;
+    el.querySelector('.seat-tag').textContent = t1;
+    if (el.querySelector('.seat-icon')) el.querySelector('.seat-icon').textContent = i1;
+    el.dataset.name = n1;
+    addSwapLog(n1, swapFirst.querySelector('.seat-num').textContent, n2, el.querySelector('.seat-num').textContent);
+    // AppState 동기화 + 백엔드 재평가 (seat2의 통계/알림 자동 갱신)
+    const sn1 = parseInt(swapFirst.querySelector('.seat-num').textContent, 10);
+    const sn2 = parseInt(el.querySelector('.seat-num').textContent, 10);
+    if (typeof syncSeatSwapToState === 'function') syncSeatSwapToState(sn1, sn2);
+    if (typeof reevaluateSeatGrid === 'function') reevaluateSeatGrid();
+    swapFirst.classList.remove('selected');
+    swapFirst = null;
+    window.swapCount++;
+    document.getElementById('swap-status').innerHTML = `자리 바꾸기 완료! (총 ${window.swapCount}회) — 계속 조정하거나 확정하세요`;
+  }
+}
+
+function addSwapLog(n1, pos1, n2, pos2) {
+  const log = document.getElementById('swap-log');
+  if (log.textContent.trim() === '변경 사항 없음') log.innerHTML = '';
+  const el = document.createElement('div');
+  el.className = 'history-item';
+  el.innerHTML = `<span style="font-weight:500">${n1}</span><span style="color:#888">↔</span><span style="font-weight:500">${n2}</span><span class="badge bw" style="margin-left:auto">${pos1}↔${pos2}번</span>`;
+  log.appendChild(el);
+}
+
+function resetSwap() {
+  swapFirst = null; window.swapCount = 0;
+  goScreen('seat3');
+}
+
+/* ===== 문서 탭 전환 ===== */
+function switchDoc(flow, idx, tab) {
+  const prefix = flow + '-ddoc-';
+  tab.closest('.card').querySelectorAll('.doc-tab').forEach(t => t.classList.remove('active'));
+  tab.closest('.card').querySelectorAll('.doc-content').forEach(d => d.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById(prefix + idx).classList.add('active');
+}
+
+</script>
+<!-- 로딩 오버레이 -->
+<div id="loading-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:14px">
+  <div style="width:40px;height:40px;border:4px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite"></div>
+  <div id="loading-message" style="color:#fff;font-size:14px;font-weight:500">처리 중...</div>
+</div>
+<!-- 토스트 -->
+<div id="toast" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;transition:opacity .3s"></div>
+
+<style>
+@keyframes spin{to{transform:rotate(360deg)}}
+#toast.show{display:block}
+#toast.toast-success{background:#3B6D11;color:#fff}
+#toast.toast-error{background:#A32D2D;color:#fff}
+#toast.toast-warn{background:#854F0B;color:#fff}
+#loading-overlay.show{display:flex}
+</style>
+<script src="api.js"></script>
+</body>
+</html>

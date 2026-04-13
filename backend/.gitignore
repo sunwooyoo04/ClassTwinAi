@@ -1,0 +1,33 @@
+# 환경변수 (API 키 노출 방지 - 절대 올리면 안 됨)
+.env
+.env.local
+.env.production
+ 
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+ 
+# 가상환경
+venv/
+env/
+.venv/
+ 
+# IDE
+.vscode/
+.idea/
+*.swp
+ 
+# OS
+.DS_Store
+Thumbs.db
+ 
+# 로그
+*.log
+ 

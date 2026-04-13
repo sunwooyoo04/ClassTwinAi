@@ -1,0 +1,125 @@
+"""Pytest e2e for seat assignment flow.
+
+Run from backend/ directory:
+    pytest test_seat_e2e.py -v
+"""
+import pytest
+import pytest_asyncio
+from httpx import AsyncClient, ASGITransport
+
+from main import app, db
+
+
+def _make_students(n=12):
+    return [
+        {
+            "name": f"학생{i:02d}",
+            "gender": "남" if i % 2 == 0 else "여",
+            "grade": ["상", "중", "하"][i % 3],
+            "height": 160 + (i % 10),
+            "vision": "약함" if i in (1, 5) else "정상",
+            "attention": "낮음" if i == 3 else "중간",
+            "special": "ADHD" if i == 7 else "일반",
+            "teacher_note": "",
+            "ai_traits": {},
+        }
+        for i in range(1, n + 1)
+    ]
+
+
+@pytest.fixture(autouse=True)
+def fresh_db():
+    """Reset in-memory db between tests."""
+    db._memory["students"] = []
+    db._memory["relations"] = []
+    db._memory["class_assignments"] = []
+    db._memory["seat_assignments"] = []
+    db._memory["class_documents"] = []
+    db._memory["seat_documents"] = []
+    db._id_counter = {k: 1 for k in db._id_counter}
+    for s in _make_students():
+        db.add_student(dict(s))
+    yield
+
+
+@pytest_asyncio.fixture
+async def client():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        yield c
+
+
+@pytest.mark.asyncio
+async def test_seat_generate_returns_grid_with_meta(client):
+    r = await client.post("/assignments/seat/generate",
+                          json={"class_id": 1, "absolute": [], "balance": [], "rows": 3, "cols": 4})
+    assert r.status_code == 200
+    body = r.json()
+    assert "seat_grid" in body and "seat_id" in body
+    assert body["rows"] == 3 and body["cols"] == 4
+    occupied = [c for row in body["seat_grid"] for c in row if c.get("name")]
+    assert occupied, "seat_grid should contain at least one occupied cell"
+    sample = occupied[0]
+    # A-1번 패치 검증: gender/grade가 cell에 있어야 함
+    assert "gender" in sample
+    assert "grade" in sample
+    assert "special" in sample
+
+
+@pytest.mark.asyncio
+async def test_seat_evaluate_recomputes_stats(client):
+    gen = (await client.post("/assignments/seat/generate",
+                             json={"class_id": 1, "absolute": [], "balance": [],
+                                   "rows": 3, "cols": 4})).json()
+    grid = gen["seat_grid"]
+    r = await client.post("/assignments/seat/evaluate",
+                          json={"class_id": 1, "seat_grid": grid})
+    assert r.status_code == 200
+    ev = r.json()
+    for key in ("conflict_adjacent_pairs", "equity_score", "alerts", "rows", "cols"):
+        assert key in ev
+
+
+@pytest.mark.asyncio
+async def test_seat_documents_generated_and_persisted(client):
+    gen = (await client.post("/assignments/seat/generate",
+                             json={"class_id": 1, "absolute": [], "balance": [],
+                                   "rows": 3, "cols": 4})).json()
+    seat_id = gen["seat_id"]
+    for dt in ("teacher", "student_reasons", "parent_response"):
+        r = await client.post("/documents/seat",
+                              json={"seat_result": gen, "doc_type": dt, "seat_id": seat_id})
+        assert r.status_code == 200
+        body = r.json()
+        assert body["type"] == dt
+        assert body["doc_id"] >= 1
+        assert body["document"]
+    # A-1번 패치 검증: DB에 3건 저장
+    saved = db.get_seat_documents(seat_id)
+    assert len(saved) == 3
+    assert {d["doc_type"] for d in saved} == {"teacher", "student_reasons", "parent_response"}
+
+
+@pytest.mark.asyncio
+async def test_seat_history_aggregates_real_data_no_dummy(client):
+    # 두 번 배정을 돌리면 history에 학생들이 누적되어야 함
+    for _ in range(2):
+        await client.post("/assignments/seat/generate",
+                          json={"class_id": 1, "absolute": [], "balance": [],
+                                "rows": 3, "cols": 4})
+    r = await client.get("/assignments/seat/history/1")
+    assert r.status_code == 200
+    body = r.json()
+    history = body["history"]
+    # 박지호 더미가 더이상 없어야 함
+    assert all(h["student_name"] != "박지호" for h in history), \
+        "박지호 더미가 여전히 반환됨"
+    # 실제 시드 학생들이 들어가 있어야 함
+    names = {h["student_name"] for h in history}
+    assert names & {f"학생{i:02d}" for i in range(1, 13)}, \
+        "시드 학생이 history에 잡히지 않음"
+    # 형평성 응답 키 검증
+    eq = body["equity"]
+    for k in ("front_row", "window", "corner", "overall", "samples"):
+        assert k in eq
+    assert eq["samples"] == 2
